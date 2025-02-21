@@ -1,6 +1,8 @@
 # Resource files
 backend/app/data/*
 **/.env
+**/node_modules/*
+**/package-lock.json
 
 # Cache Files
 __pycache__/*
