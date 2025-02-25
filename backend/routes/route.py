@@ -17,10 +17,10 @@ from decorator import token_required
 from services.weather_service import get_sea_weather_by_seapostid, get_weather_by_coordinates
 from services.lunar_mulddae import get_mulddae_cycle, calculate_moon_phase
 from services.openai_assistant import assistant_talk_request, assistant_talk_get
-from models.model import Session, User
 from utils import allowed_file, optimize_image, get_full_url
 
 from models.model import (
+    Session,
     User, Catch, AIConsent, CommunicationBoard, PostLike,
     PostComment, FishingPlace
 )
@@ -110,7 +110,7 @@ def set_route(app: Flask, model, device):
                     'user_id': user.user_id,
                     'exp': datetime.now() + timedelta(hours=24)  # 수정된 부분
                 }
-                token = jwt.encode(payload, BaseConfig.SECRET_KEY, algorithm='HS256')
+                token = jwt.encode(payload, current_app.config["SECRET_KEY"], algorithm='HS256')
 
                 return jsonify({
                     'message': '로그인 성공',
@@ -183,16 +183,17 @@ def set_route(app: Flask, model, device):
             results = model(img, exist_ok=True, device=device)
             detections = []
             
-            for result in results:  # Iterate over results
-                for cls, conf, bbox in zip(result.boxes.cls, result.boxes.conf, result.boxes.xyxy):
-                    if float(conf) > BaseConfig.CONF_SCORE:
-                        detections.append({
-                            'label': BaseConfig.labels_korean.get(int(cls), '알 수 없는 라벨'),
-                            'confidence': float(conf),
-                            'prohibited_dates': BaseConfig.PROHIBITED_DATES.get(
-                                                    BaseConfig.labels_korean.get(int(cls), ''), ''),
-                            'bbox': bbox.tolist()
-                        })
+            with app.app_context():
+                for result in results:  # Iterate over results
+                    for cls, conf, bbox in zip(result.boxes.cls, result.boxes.conf, result.boxes.xyxy):
+                        if float(conf) > current_app.config["CONF_SCORE"]:
+                            detections.append({
+                                'label': current_app.config["LABELS_KOREAN"].get(int(cls), '알 수 없는 라벨'),
+                                'confidence': float(conf),
+                                'prohibited_dates': current_app.config["PROHIBITED_DATES"].get(
+                                                    current_app.config["LABELS_KOREAN"].get(int(cls), ''), ''),
+                                'bbox': bbox.tolist()
+                            })
                         
             detections.sort(key=lambda x: x['confidence'], reverse=True)
             
@@ -218,7 +219,7 @@ def set_route(app: Flask, model, device):
             if token:
                 token = token.split(' ')[1]
                 try:
-                    data = jwt.decode(token, BaseConfig.SECRET_KEY, algorithms=['HS256'])
+                    data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=['HS256'])
                     user_id = data['user_id']
                     current_user = session.query(User).filter_by(user_id=user_id).first()
                 except:
@@ -247,7 +248,7 @@ def set_route(app: Flask, model, device):
                 else:
                     # Save new catch
                     filename = secure_filename(f"{uuid.uuid4().hex}.jpg")
-                    file_path = os.path.join(BaseConfig.UPLOAD_FOLDER, filename)
+                    file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], filename)
                     img.save(file_path, format='JPEG')
 
                     new_catch = Catch(
@@ -598,7 +599,7 @@ def set_route(app: Flask, model, device):
             return jsonify({'error': 'No selected file'}), 400
         if file and allowed_file(file.filename):
             filename = secure_filename(f"{user_id}_{uuid.uuid4().hex}.jpg")
-            file_path = os.path.join(BaseConfig.AVATAR_UPLOAD_FOLDER, filename)
+            file_path = os.path.join(current_app.config["AVATAR_UPLOAD_FOLDER"], filename)
             file.save(file_path)
             
             session = Session()
@@ -899,7 +900,7 @@ def set_route(app: Flask, model, device):
                 if image and allowed_file(image.filename):
                     try:
                         filename = secure_filename(f"{uuid.uuid4()}_{image.filename}")
-                        image_path = os.path.join(BaseConfig.UPLOAD_FOLDER, filename)
+                        image_path = os.path.join(current_app.config["UPLOAD_FOLDER"], filename)
                         image.save(image_path)
                         new_post.images.append(f'/uploads/{filename}')
                     except Exception as e:
@@ -1023,7 +1024,7 @@ def set_route(app: Flask, model, device):
                 if image and allowed_file(image.filename):
                     try:
                         filename = secure_filename(f"{uuid.uuid4()}_{image.filename}")
-                        image_path = os.path.join(BaseConfig.UPLOAD_FOLDER, filename)
+                        image_path = os.path.join(current_app.config["UPLOAD_FOLDER"], filename)
                         image.save(image_path)
                         post.images.append(f'/uploads/{filename}')
                     except Exception as e:
@@ -1077,7 +1078,7 @@ def set_route(app: Flask, model, device):
             # Delete all associated images
             if post.images:
                 for image_url in post.images:
-                    image_path = os.path.join(BaseConfig.UPLOAD_FOLDER, os.path.basename(image_url))
+                    image_path = os.path.join(current_app.config["UPLOAD_FOLDER"], os.path.basename(image_url))
                     if os.path.exists(image_path):
                         os.remove(image_path)
 

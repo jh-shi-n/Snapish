@@ -15,7 +15,7 @@ def create_app():
     app = Flask(__name__)
     
     app.config.from_object(BaseConfig)
-    BaseConfig.init_app()
+    BaseConfig.init_app(app)
     
     # CORS (Cross-origin resource sharing) 설정
     CORS(app, resources={r"/*": {
@@ -25,7 +25,7 @@ def create_app():
     }}, supports_credentials=True)
 
     # 엔드포인트 등록
-    set_route(app, model, 'cpu')
+    set_route(app, model, device)
     
     return app
         

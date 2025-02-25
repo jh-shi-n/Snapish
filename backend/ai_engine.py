@@ -18,9 +18,7 @@ def get_model(model_url):
         # Model run environment
         if torch.cuda.is_available():
             device = 'cuda'
-        elif torch.backends.mps.is_available():
-            device = 'mps'
-        else:
+        else: # TODO : MPS device is temporarily suspended for avoiding torchvision Error
             device = 'cpu'
         
         # Load Model

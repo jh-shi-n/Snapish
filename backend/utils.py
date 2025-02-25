@@ -1,4 +1,4 @@
-from config import BaseConfig
+from flask import current_app
 from PIL import Image
 from io import BytesIO
 import os
@@ -9,8 +9,13 @@ def allowed_file(filename):
     """
     Check if the file has one of the allowed extensions.
     """
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in BaseConfig.ALLOWED_EXTENSIONS
+    
+    # allowed_ext = current_app.config["ALLOWED_EXTENSIONS"]
+    # print(allowed_ext)
+    files = '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config["ALLOWED_EXTENSIONS"]
 
+    return files
+ 
 # 이미지 최적화 함수 추가
 def optimize_image(image, max_size=1024):
     """Optimize image size and quality for mobile"""
