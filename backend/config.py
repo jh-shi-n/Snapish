@@ -4,31 +4,36 @@ import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-# .env 파일 불러오기
+# Call .env file
 load_dotenv()
 
 class BaseConfig(object):
-    # 클라이언트 상 업로드되는 파일 경로
+    # Upload directory setup 
     UPLOAD_FOLDER = 'uploads'
     AVATAR_UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, 'avatars')
     
-    # 클라이언트 허용 이미지 확장자
+    # Initialize directory : upload folder
+    @staticmethod
+    def init_app(app):
+        """
+        Ensure necessary folders exist
+        """
+        os.makedirs(BaseConfig.UPLOAD_FOLDER, exist_ok=True)
+        os.makedirs(BaseConfig.AVATAR_UPLOAD_FOLDER, exist_ok=True)
+    
+    # Client-allowed extension setup
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
     
+    # Os environment
     SECRET_KEY = os.getenv('SECRET_KEY')
     DATABASE_URL = os.getenv('DATABASE_URL')
     
-    @staticmethod
-    def init_app():
-        """Ensure necessary folders exist"""
-        os.makedirs(BaseConfig.UPLOAD_FOLDER, exist_ok=True)
-        os.makedirs(BaseConfig.AVATAR_UPLOAD_FOLDER, exist_ok=True)
-
-    
+    # AI model config
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
     CONF_SCORE = 0.5
     
-    # 라벨 매핑 (영어 -> 한국어)
-    labels_korean = {
+    # AI model - Detect result label mapping
+    LABELS_KOREAN = {
         0: '감성돔',
         1: '대구',
         2: '꽃게',
@@ -48,7 +53,7 @@ class BaseConfig(object):
         16: '주꾸미'
         }
 
-    # Add this dictionary at the top of your file
+    # AI model - prohibited date
     PROHIBITED_DATES = {
         "넙치": "",
         "조피볼락": "",
