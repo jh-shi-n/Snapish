@@ -1,4 +1,4 @@
-# 🎣 낚시 입문자를 위한 금어종 판별 AI 웹 서비스
+# 🎣 낚시 입문자를 위한 금어기 판별 AI 웹 서비스
 
 [![프로젝트 발표자료](https://github.com/SnapishAgent/Snapish/blob/main/public/presentation-preview.jpg)](https://github.com/SnapishAgent/Snapish/blob/main/public/2%EC%A1%B0%20%ED%8C%8C%EC%9D%B4%EB%84%90%20%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20%EB%B0%9C%ED%91%9C%EC%9E%90%EB%A3%8C.pdf)
 > 메인 이미지 클릭 시, 프로젝트 발표 자료로 이동됩니다!
