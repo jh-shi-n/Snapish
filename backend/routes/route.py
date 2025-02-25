@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 from PIL import Image
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, current_app
 from sqlalchemy import text, func
 import os
 import logging
@@ -21,11 +21,8 @@ from models.model import Session, User
 from utils import allowed_file, optimize_image, get_full_url
 
 from models.model import (
-    User, UserSession, Location, FishSpecies, Catch,
-    AIConsent, FishDiary, CommunicationBoard, PostLike,
-    PostComment, PostRetweet, WeatherData, Tournament,
-    TournamentParticipant, Ranking, TidalObservation,
-    FishingPlace
+    User, Catch, AIConsent, CommunicationBoard, PostLike,
+    PostComment, FishingPlace
 )
 
 def set_route(app: Flask, model, device):
@@ -85,7 +82,7 @@ def set_route(app: Flask, model, device):
             username=username,
             email=email,
             password_hash=hashed_password,
-            created_at=datetime.utcnow()
+            created_at=datetime.now()
         )
 
         session.add(new_user)
@@ -111,7 +108,7 @@ def set_route(app: Flask, model, device):
                 # 토큰 생성
                 payload = {
                     'user_id': user.user_id,
-                    'exp': datetime.utcnow() + timedelta(hours=24)  # 수정된 부분
+                    'exp': datetime.now() + timedelta(hours=24)  # 수정된 부분
                 }
                 token = jwt.encode(payload, BaseConfig.SECRET_KEY, algorithm='HS256')
 
@@ -238,7 +235,7 @@ def set_route(app: Flask, model, device):
                     if existing_catch:
                         existing_catch.exif_data = detections
                         existing_catch.photo_url = filename
-                        existing_catch.catch_date = datetime.utcnow()
+                        existing_catch.catch_date = datetime.now()
                         session.commit()
                         response_data = {
                             'id': existing_catch.catch_id,
@@ -257,7 +254,7 @@ def set_route(app: Flask, model, device):
                         user_id=current_user.user_id,
                         photo_url=filename,
                         exif_data=detections,
-                        catch_date=datetime.utcnow()
+                        catch_date=datetime.now()
                     )
                     session.add(new_catch)
                     session.commit()
@@ -768,12 +765,12 @@ def set_route(app: Flask, model, device):
             consent = session.query(AIConsent).filter_by(user_id=user_id).first()
             if consent:
                 consent.consent_given = consent_given
-                consent.consent_date = datetime.utcnow()
+                consent.consent_date = datetime.now()
             else:
                 consent = AIConsent(
                     user_id=user_id,
                     consent_given=consent_given,
-                    consent_date=datetime.utcnow()
+                    consent_date=datetime.now()
                 )
                 session.add(consent)
             session.commit()
@@ -893,8 +890,8 @@ def set_route(app: Flask, model, device):
                 title=title,
                 content=content,
                 images=[],  # Initialize empty list for images
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
+                created_at=datetime.now(),
+                updated_at=datetime.now()
             )
 
             # Handle image uploads
@@ -1045,7 +1042,7 @@ def set_route(app: Flask, model, device):
             # 게시물 내용 업데이트
             post.title = data.get('title', post.title)
             post.content = data.get('content', post.content)
-            post.updated_at = datetime.utcnow()
+            post.updated_at = datetime.now()
 
             session.commit()
 
