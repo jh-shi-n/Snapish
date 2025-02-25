@@ -1,0 +1,1598 @@
+{
+  "result": {
+    "data": [
+      {
+        "obs_post_id": "DT_0063",
+        "obs_lat": "35.02417",
+        "data_type": "조위관측소",
+        "obs_post_name": "가덕도",
+        "obs_lon": "128.81093",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0032",
+        "obs_lat": "37.73194",
+        "data_type": "조위관측소",
+        "obs_post_name": "강화대교",
+        "obs_lon": "126.52222",
+        "obs_object": "조위,기압,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0031",
+        "obs_lat": "34.02833",
+        "data_type": "조위관측소",
+        "obs_post_name": "거문도",
+        "obs_lon": "127.30888",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0029",
+        "obs_lat": "34.80138",
+        "data_type": "조위관측소",
+        "obs_post_name": "거제도",
+        "obs_lon": "128.69916",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0026",
+        "obs_lat": "34.48111",
+        "data_type": "조위관측소",
+        "obs_post_name": "고흥발포",
+        "obs_lon": "127.34277",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0049",
+        "obs_lat": "34.90367",
+        "data_type": "조위관측소",
+        "obs_post_name": "광양",
+        "obs_lon": "127.75483",
+        "obs_object": "조위,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0018",
+        "obs_lat": "35.97555",
+        "data_type": "조위관측소",
+        "obs_post_name": "군산",
+        "obs_lon": "126.56305",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0017",
+        "obs_lat": "37.0075",
+        "data_type": "조위관측소",
+        "obs_post_name": "대산",
+        "obs_lon": "126.35277",
+        "obs_object": "조위,수온,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0065",
+        "obs_lat": "37.22633",
+        "data_type": "조위관측소",
+        "obs_post_name": "덕적도",
+        "obs_lon": "126.15655",
+        "obs_object": "조위,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0057",
+        "obs_lat": "37.49472",
+        "data_type": "조위관측소",
+        "obs_post_name": "동해항",
+        "obs_lon": "129.14388",
+        "obs_object": "조위,기온,기압,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0062",
+        "obs_lat": "35.1975",
+        "data_type": "조위관측소",
+        "obs_post_name": "마산",
+        "obs_lon": "128.57638",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0023",
+        "obs_lat": "33.21444",
+        "data_type": "조위관측소",
+        "obs_post_name": "모슬포",
+        "obs_lon": "126.25111",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0007",
+        "obs_lat": "34.77972",
+        "data_type": "조위관측소",
+        "obs_post_name": "목포",
+        "obs_lon": "126.37555",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0006",
+        "obs_lat": "37.55027",
+        "data_type": "조위관측소",
+        "obs_post_name": "묵호",
+        "obs_lon": "129.11638",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0025",
+        "obs_lat": "36.40638",
+        "data_type": "조위관측소",
+        "obs_post_name": "보령",
+        "obs_lon": "126.48611",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0005",
+        "obs_lat": "35.09638",
+        "data_type": "조위관측소",
+        "obs_post_name": "부산",
+        "obs_lon": "129.03527",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0056",
+        "obs_lat": "35.0775",
+        "data_type": "조위관측소",
+        "obs_post_name": "부산항신항",
+        "obs_lon": "128.78694",
+        "obs_object": "조위,기온,기압,풍속,풍향"
+      },
+      {
+        "obs_post_id": "DT_0061",
+        "obs_lat": "34.92416",
+        "data_type": "조위관측소",
+        "obs_post_name": "삼천포",
+        "obs_lon": "128.06972",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0094",
+        "obs_lat": "34.25142",
+        "data_type": "조위관측소",
+        "obs_post_name": "서거차도",
+        "obs_lon": "125.91544",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0010",
+        "obs_lat": "33.24",
+        "data_type": "조위관측소",
+        "obs_post_name": "서귀포",
+        "obs_lon": "126.56166",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0051",
+        "obs_lat": "36.12888",
+        "data_type": "조위관측소",
+        "obs_post_name": "서천마량",
+        "obs_lon": "126.49527",
+        "obs_object": "조위,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0022",
+        "obs_lat": "33.47472",
+        "data_type": "조위관측소",
+        "obs_post_name": "성산포",
+        "obs_lon": "126.92777",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0093",
+        "obs_lat": "37.37306",
+        "data_type": "조위관측소",
+        "obs_post_name": "소무의도",
+        "obs_lon": "126.44006",
+        "obs_object": "조위,기압,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0012",
+        "obs_lat": "38.20722",
+        "data_type": "조위관측소",
+        "obs_post_name": "속초",
+        "obs_lon": "128.59416",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0008",
+        "obs_lat": "37.19222",
+        "data_type": "조위관측소",
+        "obs_post_name": "안산",
+        "obs_lon": "126.64722",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0067",
+        "obs_lat": "36.67463",
+        "data_type": "조위관측소",
+        "obs_post_name": "안흥",
+        "obs_lon": "126.12955",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0037",
+        "obs_lat": "36.11722",
+        "data_type": "조위관측소",
+        "obs_post_name": "어청도",
+        "obs_lon": "125.98472",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0016",
+        "obs_lat": "34.74722",
+        "data_type": "조위관측소",
+        "obs_post_name": "여수",
+        "obs_lon": "127.76555",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0092",
+        "obs_lat": "34.66194",
+        "data_type": "조위관측소",
+        "obs_post_name": "여호항",
+        "obs_lon": "127.46916",
+        "obs_object": "조위,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0003",
+        "obs_lat": "35.42611",
+        "data_type": "조위관측소",
+        "obs_post_name": "영광",
+        "obs_lon": "126.42055",
+        "obs_object": "조위,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0044",
+        "obs_lat": "37.54555",
+        "data_type": "조위관측소",
+        "obs_post_name": "영종대교",
+        "obs_lon": "126.58444",
+        "obs_object": "조위,기압,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0043",
+        "obs_lat": "37.23861",
+        "data_type": "조위관측소",
+        "obs_post_name": "영흥도",
+        "obs_lon": "126.42861",
+        "obs_object": "조위,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0027",
+        "obs_lat": "34.31555",
+        "data_type": "조위관측소",
+        "obs_post_name": "완도",
+        "obs_lon": "126.75972",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0013",
+        "obs_lat": "37.49138",
+        "data_type": "조위관측소",
+        "obs_post_name": "울릉도",
+        "obs_lon": "130.91361",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0020",
+        "obs_lat": "35.50194",
+        "data_type": "조위관측소",
+        "obs_post_name": "울산",
+        "obs_lon": "129.38722",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0068",
+        "obs_lat": "35.61808",
+        "data_type": "조위관측소",
+        "obs_post_name": "위도",
+        "obs_lon": "126.30181",
+        "obs_object": "조위,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0001",
+        "obs_lat": "37.45194",
+        "data_type": "조위관측소",
+        "obs_post_name": "인천",
+        "obs_lon": "126.59222",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0052",
+        "obs_lat": "37.33805",
+        "data_type": "조위관측소",
+        "obs_post_name": "인천송도",
+        "obs_lon": "126.58611",
+        "obs_object": "조위,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0024",
+        "obs_lat": "36.00694",
+        "data_type": "조위관측소",
+        "obs_post_name": "장항",
+        "obs_lon": "126.6875",
+        "obs_object": "조위,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0004",
+        "obs_lat": "33.5275",
+        "data_type": "조위관측소",
+        "obs_post_name": "제주",
+        "obs_lon": "126.54305",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0028",
+        "obs_lat": "34.37777",
+        "data_type": "조위관측소",
+        "obs_post_name": "진도",
+        "obs_lon": "126.30861",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0021",
+        "obs_lat": "33.96194",
+        "data_type": "조위관측소",
+        "obs_post_name": "추자도",
+        "obs_lon": "126.30027",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0050",
+        "obs_lat": "36.91305",
+        "data_type": "조위관측소",
+        "obs_post_name": "태안",
+        "obs_lon": "126.23888",
+        "obs_object": "조위,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0014",
+        "obs_lat": "34.82777",
+        "data_type": "조위관측소",
+        "obs_post_name": "통영",
+        "obs_lon": "128.43472",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0002",
+        "obs_lat": "36.96694",
+        "data_type": "조위관측소",
+        "obs_post_name": "평택",
+        "obs_lon": "126.82277",
+        "obs_object": "조위,수온,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0091",
+        "obs_lat": "36.05177",
+        "data_type": "조위관측소",
+        "obs_post_name": "포항",
+        "obs_lon": "129.37627",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0011",
+        "obs_lat": "36.6775",
+        "data_type": "조위관측소",
+        "obs_post_name": "후포",
+        "obs_lon": "129.45305",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0035",
+        "obs_lat": "34.68416",
+        "data_type": "조위관측소",
+        "obs_post_name": "흑산도",
+        "obs_lon": "125.43555",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0042",
+        "obs_lat": "34.70472",
+        "data_type": "해양관측소",
+        "obs_post_name": "교본초",
+        "obs_lon": "128.30638",
+        "obs_object": "조위,기온,기압,풍속,풍향,파고,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0039",
+        "obs_lat": "36.71916",
+        "data_type": "해양관측소",
+        "obs_post_name": "왕돌초",
+        "obs_lon": "129.7325",
+        "obs_object": "조위,기온,기압,풍속,풍향,파고,조수간만"
+      },
+      {
+        "obs_post_id": "IE_0060",
+        "obs_lat": "32.12277",
+        "data_type": "해양과학기지",
+        "obs_post_name": "이어도",
+        "obs_lon": "125.18222",
+        "obs_object": "조위,수온,염분,기온,기압,풍속,풍향,파고,조수간만"
+      },
+      {
+        "obs_post_id": "IE_0062",
+        "obs_lat": "37.42305",
+        "data_type": "해양과학기지",
+        "obs_post_name": "옹진소청초",
+        "obs_lon": "124.73805",
+        "obs_object": "조위,수온,기온,기압,풍속,풍향,파고,조수간만"
+      },
+      {
+        "obs_post_id": "IE_0061",
+        "obs_lat": "33.94194",
+        "data_type": "해양과학기지",
+        "obs_post_name": "신안가거초",
+        "obs_lon": "124.59277",
+        "obs_object": "조위,기온,기압,풍속,풍향,파고,조수간만"
+      },
+      {
+        "obs_post_id": "TW_0079",
+        "obs_lat": "35.65247",
+        "data_type": "해양관측부이",
+        "obs_post_name": "상왕등도",
+        "obs_lon": "126.19425",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유속,유향,조수간만"
+      },
+      {
+        "obs_post_id": "TW_0080",
+        "obs_lat": "34.54305",
+        "data_type": "해양관측부이",
+        "obs_post_name": "우이도",
+        "obs_lon": "125.80277",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유속,유향,조수간만"
+      },
+      {
+        "obs_post_id": "TW_0086",
+        "obs_lat": "35.04377",
+        "data_type": "해양관측부이",
+        "obs_post_name": "부산항신항",
+        "obs_lon": "128.76175",
+        "obs_object": "수온,유속,유향,조수간만"
+      },
+      {
+        "obs_post_id": "DT_0902",
+        "obs_lat": "36.0032",
+        "data_type": "조위관측소",
+        "obs_post_name": "포항시청_냉천항만교",
+        "obs_lon": "129.4132",
+        "obs_object": "조위"
+      },
+      {
+        "obs_post_id": "DT_0066",
+        "obs_lat": "35.16766",
+        "data_type": "조위관측소",
+        "obs_post_name": "향화도",
+        "obs_lon": "126.35955",
+        "obs_object": "조위,기온,기압,풍속,풍향"
+      },
+      {
+        "obs_post_id": "TW_0089",
+        "obs_lat": "37.80897",
+        "data_type": "해양관측부이",
+        "obs_post_name": "경포대해수욕장",
+        "obs_lon": "128.93188",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "HB_0007",
+        "obs_lat": "37.01944",
+        "data_type": "해양관측부이",
+        "obs_post_name": "한수원_온양",
+        "obs_lon": "129.425",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "HB_0008",
+        "obs_lat": "37.1",
+        "data_type": "해양관측부이",
+        "obs_post_name": "한수원_덕천",
+        "obs_lon": "129.40416",
+        "obs_object": "수온,기온,기압,풍속,풍향,유속,유향"
+      },
+      {
+        "obs_post_id": "HB_0009",
+        "obs_lat": "37.11916",
+        "data_type": "해양관측부이",
+        "obs_post_name": "한수원_나곡",
+        "obs_lon": "129.39583",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0081",
+        "obs_lat": "34.25872",
+        "data_type": "해양관측부이",
+        "obs_post_name": "생일도",
+        "obs_lon": "126.96027",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0082",
+        "obs_lat": "37.00672",
+        "data_type": "해양관측부이",
+        "obs_post_name": "태안항",
+        "obs_lon": "126.27022",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0083",
+        "obs_lat": "34.79472",
+        "data_type": "해양관측부이",
+        "obs_post_name": "여수항",
+        "obs_lon": "127.80805",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0084",
+        "obs_lat": "34.77333",
+        "data_type": "해양관측부이",
+        "obs_post_name": "통영항",
+        "obs_lon": "128.46",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0092",
+        "obs_lat": "35.3025",
+        "data_type": "해양관측부이",
+        "obs_post_name": "임랑해수욕장",
+        "obs_lon": "129.2925",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "SF_0001",
+        "obs_lat": "35.09175",
+        "data_type": "해양관측부이",
+        "obs_post_name": "부산항",
+        "obs_lon": "129.08525",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0078",
+        "obs_lat": "34.32508",
+        "data_type": "해양관측부이",
+        "obs_post_name": "완도항",
+        "obs_lon": "126.76319",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0087",
+        "obs_lat": "35.09175",
+        "data_type": "해양관측부이",
+        "obs_post_name": "부산항",
+        "obs_lon": "129.08525",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0090",
+        "obs_lat": "35.16472",
+        "data_type": "해양관측부이",
+        "obs_post_name": "송정해수욕장",
+        "obs_lon": "129.21944",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0074",
+        "obs_lat": "34.85972",
+        "data_type": "해양관측부이",
+        "obs_post_name": "광양항",
+        "obs_lon": "127.79277",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "HB_0001",
+        "obs_lat": "35.18244",
+        "data_type": "해양관측부이",
+        "obs_post_name": "한수원_기장",
+        "obs_lon": "129.23525",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "HB_0002",
+        "obs_lat": "35.3185",
+        "data_type": "해양관측부이",
+        "obs_post_name": "한수원_고리",
+        "obs_lon": "129.31472",
+        "obs_object": "수온,기온,기압,풍속,풍향,유속,유향"
+      },
+      {
+        "obs_post_id": "HB_0003",
+        "obs_lat": "35.38472",
+        "data_type": "해양관측부이",
+        "obs_post_name": "한수원_진하",
+        "obs_lon": "129.36805",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0062",
+        "obs_lat": "35.14897",
+        "data_type": "해양관측부이",
+        "obs_post_name": "해운대해수욕장",
+        "obs_lon": "129.17016",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0069",
+        "obs_lat": "36.27411",
+        "data_type": "해양관측부이",
+        "obs_post_name": "대천해수욕장",
+        "obs_lon": "126.4578",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0070",
+        "obs_lat": "37.13666",
+        "data_type": "해양관측부이",
+        "obs_post_name": "평택당진항",
+        "obs_lon": "126.54083",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0072",
+        "obs_lat": "35.98416",
+        "data_type": "해양관측부이",
+        "obs_post_name": "군산항",
+        "obs_lon": "126.50875",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0075",
+        "obs_lat": "33.2345",
+        "data_type": "해양관측부이",
+        "obs_post_name": "중문해수욕장",
+        "obs_lon": "126.40955",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0076",
+        "obs_lat": "37.38944",
+        "data_type": "해양관측부이",
+        "obs_post_name": "인천항",
+        "obs_lon": "126.53305",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0088",
+        "obs_lat": "35.0528",
+        "data_type": "해양관측부이",
+        "obs_post_name": "감천항",
+        "obs_lon": "129.00308",
+        "obs_object": "수온,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0085",
+        "obs_lat": "35.10319",
+        "data_type": "해양관측부이",
+        "obs_post_name": "마산항",
+        "obs_lon": "128.63183",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0091",
+        "obs_lat": "38.1225",
+        "data_type": "해양관측부이",
+        "obs_post_name": "낙산해수욕장",
+        "obs_lon": "128.65055",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "SF_0005",
+        "obs_lat": "35.98416",
+        "data_type": "해양관측부이",
+        "obs_post_name": "군산항",
+        "obs_lon": "126.50875",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0093",
+        "obs_lat": "38.19861",
+        "data_type": "해양관측부이",
+        "obs_post_name": "속초해수욕장",
+        "obs_lon": "128.63138",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "TW_0094",
+        "obs_lat": "37.59366",
+        "data_type": "해양관측부이",
+        "obs_post_name": "망상해수욕장",
+        "obs_lon": "129.09009",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유향"
+      },
+      {
+        "obs_post_id": "TW_0095",
+        "obs_lat": "36.58",
+        "data_type": "해양관측부이",
+        "obs_post_name": "고래불해수욕장",
+        "obs_lon": "129.45408",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "KG_0021",
+        "obs_lat": "32.09041",
+        "data_type": "해양관측부이",
+        "obs_post_name": "제주남부",
+        "obs_lon": "126.96586",
+        "obs_object": "수온,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "KG_0024",
+        "obs_lat": "34.919",
+        "data_type": "해양관측부이",
+        "obs_post_name": "대한해협",
+        "obs_lon": "129.12125",
+        "obs_object": "기온,기압,풍속,풍향,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "KG_0025",
+        "obs_lat": "34.22247",
+        "data_type": "해양관측부이",
+        "obs_post_name": "남해동부",
+        "obs_lon": "128.41902",
+        "obs_object": "수온,유속,유향"
+      },
+      {
+        "obs_post_id": "KG_0028",
+        "obs_lat": "33.70011",
+        "data_type": "해양관측부이",
+        "obs_post_name": "제주해협",
+        "obs_lon": "126.5905",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "KG_0101",
+        "obs_lat": "38.00736",
+        "data_type": "해양관측부이",
+        "obs_post_name": "울릉도북동",
+        "obs_lon": "131.55258",
+        "obs_object": "수온,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "KG_0102",
+        "obs_lat": "37.74272",
+        "data_type": "해양관측부이",
+        "obs_post_name": "울릉도북서",
+        "obs_lon": "130.60119",
+        "obs_object": "수온,기온,기압,풍속,풍향,파고,유속,유향"
+      },
+      {
+        "obs_post_id": "SO_0732",
+        "obs_lat": 37.944,
+        "data_type": "조수간만",
+        "obs_post_name": "남애항",
+        "obs_lon": 128.788,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0733",
+        "obs_lat": 37.772,
+        "data_type": "조수간만",
+        "obs_post_name": "강릉항",
+        "obs_lon": 128.951,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0734",
+        "obs_lat": 37.327,
+        "data_type": "조수간만",
+        "obs_post_name": "궁촌항",
+        "obs_lon": 129.27,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0735",
+        "obs_lat": 37.054,
+        "data_type": "조수간만",
+        "obs_post_name": "죽변항",
+        "obs_lon": 129.423,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0736",
+        "obs_lat": 36.509,
+        "data_type": "조수간만",
+        "obs_post_name": "축산항",
+        "obs_lon": 129.448,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0737",
+        "obs_lat": 36.358,
+        "data_type": "조수간만",
+        "obs_post_name": "강구항",
+        "obs_lon": 129.391,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0555",
+        "obs_lat": 34.366,
+        "data_type": "조수간만",
+        "obs_post_name": "서망항",
+        "obs_lon": 126.134,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "DT_0054",
+        "obs_lat": 35.147,
+        "data_type": "조수간만",
+        "obs_post_name": "진해",
+        "obs_lon": 128.643,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0739",
+        "obs_lat": 34.367,
+        "data_type": "조수간만",
+        "obs_post_name": "도장항",
+        "obs_lon": 127.011,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0740",
+        "obs_lat": 34.129,
+        "data_type": "조수간만",
+        "obs_post_name": "보옥항",
+        "obs_lon": 126.513,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0699",
+        "obs_lat": 36.803,
+        "data_type": "조수간만",
+        "obs_post_name": "천리포항",
+        "obs_lon": 126.146,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0562",
+        "obs_lat": 37.169,
+        "data_type": "조수간만",
+        "obs_post_name": "승봉도",
+        "obs_lon": 126.29,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0573",
+        "obs_lat": 35.881,
+        "data_type": "조수간만",
+        "obs_post_name": "양포항",
+        "obs_lon": 129.527,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0581",
+        "obs_lat": 35.39,
+        "data_type": "조수간만",
+        "obs_post_name": "강양항",
+        "obs_lon": 129.344,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0571",
+        "obs_lat": 34.939,
+        "data_type": "조수간만",
+        "obs_post_name": "거제외포",
+        "obs_lon": 128.718,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0578",
+        "obs_lat": 34.621,
+        "data_type": "조수간만",
+        "obs_post_name": "소매물도",
+        "obs_lon": 128.548,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0567",
+        "obs_lat": 34.504,
+        "data_type": "조수간만",
+        "obs_post_name": "쉬미항",
+        "obs_lon": 126.183,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0576",
+        "obs_lat": 34.661,
+        "data_type": "조수간만",
+        "obs_post_name": "화봉리",
+        "obs_lon": 126.256,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0564",
+        "obs_lat": 37.06,
+        "data_type": "조수간만",
+        "obs_post_name": "국화도",
+        "obs_lon": 126.56,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0563",
+        "obs_lat": 37.035,
+        "data_type": "조수간만",
+        "obs_post_name": "울도",
+        "obs_lon": 125.995,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0706",
+        "obs_lat": 34.18,
+        "data_type": "조수간만",
+        "obs_post_name": "청산도",
+        "obs_lon": 126.856,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0708",
+        "obs_lat": 34.479,
+        "data_type": "조수간만",
+        "obs_post_name": "안도항",
+        "obs_lon": 127.797,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0712",
+        "obs_lat": 34.812,
+        "data_type": "조수간만",
+        "obs_post_name": "능양항",
+        "obs_lon": 128.245,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0701",
+        "obs_lat": 34.681,
+        "data_type": "조수간만",
+        "obs_post_name": "홍도항",
+        "obs_lon": 125.195,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0702",
+        "obs_lat": 34.35,
+        "data_type": "조수간만",
+        "obs_post_name": "진도옥도",
+        "obs_lon": 126.018,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0703",
+        "obs_lat": 34.298,
+        "data_type": "조수간만",
+        "obs_post_name": "땅끝항",
+        "obs_lon": 126.531,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0704",
+        "obs_lat": 34.15,
+        "data_type": "조수간만",
+        "obs_post_name": "소안항",
+        "obs_lon": 126.631,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "DT_0040",
+        "obs_lat": 37.238,
+        "data_type": "조수간만",
+        "obs_post_name": "독도",
+        "obs_lon": 131.867,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "DT_0036",
+        "obs_lat": 37.825,
+        "data_type": "조수간만",
+        "obs_post_name": "대청도",
+        "obs_lon": 124.718,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0553",
+        "obs_lat": 35.16,
+        "data_type": "조수간만",
+        "obs_post_name": "해운대",
+        "obs_lon": 129.191,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0540",
+        "obs_lat": 37.176,
+        "data_type": "조수간만",
+        "obs_post_name": "호산항",
+        "obs_lon": 129.342,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "DT_0047",
+        "obs_lat": 33.158,
+        "data_type": "조수간만",
+        "obs_post_name": "도농탄",
+        "obs_lon": 126.274,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "DT_0048",
+        "obs_lat": 38.199,
+        "data_type": "조수간만",
+        "obs_post_name": "속초등표",
+        "obs_lon": 128.613,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0549",
+        "obs_lat": 34.24,
+        "data_type": "조수간만",
+        "obs_post_name": "초도",
+        "obs_lon": 127.245,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0538",
+        "obs_lat": 35.345,
+        "data_type": "조수간만",
+        "obs_post_name": "안마도",
+        "obs_lon": 126.016,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0539",
+        "obs_lat": 37.7,
+        "data_type": "조수간만",
+        "obs_post_name": "강화외포",
+        "obs_lon": 126.372,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0554",
+        "obs_lat": 37.458,
+        "data_type": "조수간만",
+        "obs_post_name": "영종왕산",
+        "obs_lon": 126.358,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0326",
+        "obs_lat": 34.706,
+        "data_type": "조수간만",
+        "obs_post_name": "미조항",
+        "obs_lon": 128.048,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "DT_0038",
+        "obs_lat": 37.194,
+        "data_type": "조수간만",
+        "obs_post_name": "굴업도",
+        "obs_lon": 125.995,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "DT_0046",
+        "obs_lat": 37.556,
+        "data_type": "조수간만",
+        "obs_post_name": "쌍정초",
+        "obs_lon": 130.939,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "DT_0041",
+        "obs_lat": 34.098,
+        "data_type": "조수간만",
+        "obs_post_name": "복사초",
+        "obs_lon": 126.168,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0537",
+        "obs_lat": 34.539,
+        "data_type": "조수간만",
+        "obs_post_name": "벽파진",
+        "obs_lon": 126.346,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0547",
+        "obs_lat": 35.855,
+        "data_type": "조수간만",
+        "obs_post_name": "말도",
+        "obs_lon": 126.318,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0550",
+        "obs_lat": 34.463,
+        "data_type": "조수간만",
+        "obs_post_name": "나로도",
+        "obs_lon": 127.453,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0705",
+        "obs_lat": 34.448,
+        "data_type": "조수간만",
+        "obs_post_name": "마량항",
+        "obs_lon": 126.821,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0707",
+        "obs_lat": 34.394,
+        "data_type": "조수간만",
+        "obs_post_name": "시산항",
+        "obs_lon": 127.261,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0709",
+        "obs_lat": 34.643,
+        "data_type": "조수간만",
+        "obs_post_name": "두문포",
+        "obs_lon": 127.797,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0710",
+        "obs_lat": 34.932,
+        "data_type": "조수간만",
+        "obs_post_name": "봉우항",
+        "obs_lon": 127.927,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0711",
+        "obs_lat": 34.84,
+        "data_type": "조수간만",
+        "obs_post_name": "창선도",
+        "obs_lon": 128.019,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0700",
+        "obs_lat": 36.303,
+        "data_type": "조수간만",
+        "obs_post_name": "호도",
+        "obs_lon": 126.264,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "DT_0059",
+        "obs_lat": 37.955,
+        "data_type": "조수간만",
+        "obs_post_name": "백령도",
+        "obs_lon": 124.736,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "DT_0060",
+        "obs_lat": 37.657,
+        "data_type": "조수간만",
+        "obs_post_name": "연평도",
+        "obs_lon": 125.714,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0551",
+        "obs_lat": 33.988,
+        "data_type": "조수간만",
+        "obs_post_name": "여서도",
+        "obs_lon": 126.923,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0552",
+        "obs_lat": 34.901,
+        "data_type": "조수간만",
+        "obs_post_name": "고현항",
+        "obs_lon": 128.622,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0572",
+        "obs_lat": 35.69,
+        "data_type": "조수간만",
+        "obs_post_name": "읍천항",
+        "obs_lon": 129.475,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0569",
+        "obs_lat": 34.957,
+        "data_type": "조수간만",
+        "obs_post_name": "남포항",
+        "obs_lon": 128.321,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0570",
+        "obs_lat": 35.102,
+        "data_type": "조수간만",
+        "obs_post_name": "광암항",
+        "obs_lon": 128.498,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0568",
+        "obs_lat": 34.624,
+        "data_type": "조수간만",
+        "obs_post_name": "백야도",
+        "obs_lon": 127.632,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0577",
+        "obs_lat": 34.05,
+        "data_type": "조수간만",
+        "obs_post_name": "가거도",
+        "obs_lon": 125.128,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0566",
+        "obs_lat": 34.848,
+        "data_type": "조수간만",
+        "obs_post_name": "송공항",
+        "obs_lon": 126.225,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0565",
+        "obs_lat": 35.167,
+        "data_type": "조수간만",
+        "obs_post_name": "향화도항",
+        "obs_lon": 126.359,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0574",
+        "obs_lat": 36.586,
+        "data_type": "조수간만",
+        "obs_post_name": "백사장항",
+        "obs_lon": 126.315,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0731",
+        "obs_lat": 38.501,
+        "data_type": "조수간만",
+        "obs_post_name": "대진항",
+        "obs_lon": 128.426,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1251",
+        "obs_lat": 35.2,
+        "data_type": "조수간만",
+        "obs_post_name": "낙월도",
+        "obs_lon": 126.145,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1252",
+        "obs_lat": 36.225,
+        "data_type": "조수간만",
+        "obs_post_name": "외연도항",
+        "obs_lon": 126.081,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0757",
+        "obs_lat": 34.73,
+        "data_type": "조수간만",
+        "obs_post_name": "안남리",
+        "obs_lon": 127.264,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0755",
+        "obs_lat": 34.393,
+        "data_type": "조수간만",
+        "obs_post_name": "원동항",
+        "obs_lon": 126.648,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0754",
+        "obs_lat": 34.448,
+        "data_type": "조수간만",
+        "obs_post_name": "평호리",
+        "obs_lon": 126.455,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1256",
+        "obs_lat": 37.643,
+        "data_type": "조수간만",
+        "obs_post_name": "어류정항",
+        "obs_lon": 126.342,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "DT_0064",
+        "obs_lat": 37.789,
+        "data_type": "조수간만",
+        "obs_post_name": "교동대교",
+        "obs_lon": 126.339,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1249",
+        "obs_lat": 34.256,
+        "data_type": "조수간만",
+        "obs_post_name": "독거도",
+        "obs_lon": 126.178,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1250",
+        "obs_lat": 34.245,
+        "data_type": "조수간만",
+        "obs_post_name": "평도",
+        "obs_lon": 127.447,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1254",
+        "obs_lat": 34.21,
+        "data_type": "조수간만",
+        "obs_post_name": "만재도",
+        "obs_lon": 125.472,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1248",
+        "obs_lat": 34.683,
+        "data_type": "조수간만",
+        "obs_post_name": "신안옥도",
+        "obs_lon": 126.064,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0759",
+        "obs_lat": 34.873,
+        "data_type": "조수간만",
+        "obs_post_name": "장문리",
+        "obs_lon": 128.424,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0760",
+        "obs_lat": 36.888,
+        "data_type": "조수간만",
+        "obs_post_name": "오산항",
+        "obs_lon": 129.416,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0753",
+        "obs_lat": 34.608,
+        "data_type": "조수간만",
+        "obs_post_name": "하의도웅곡",
+        "obs_lon": 126.038,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0631",
+        "obs_lat": 34.853,
+        "data_type": "조수간만",
+        "obs_post_name": "암태도",
+        "obs_lon": 126.071,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0752",
+        "obs_lat": 35.0,
+        "data_type": "조수간만",
+        "obs_post_name": "검산항",
+        "obs_lon": 126.107,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0761",
+        "obs_lat": 34.527,
+        "data_type": "조수간만",
+        "obs_post_name": "녹동항",
+        "obs_lon": 127.134,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1255",
+        "obs_lat": 34.435,
+        "data_type": "조수간만",
+        "obs_post_name": "상태도",
+        "obs_lon": 125.285,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0758",
+        "obs_lat": 34.761,
+        "data_type": "조수간만",
+        "obs_post_name": "달천도",
+        "obs_lon": 127.563,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_0756",
+        "obs_lat": 34.47,
+        "data_type": "조수간만",
+        "obs_post_name": "사초항",
+        "obs_lon": 126.761,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1257",
+        "obs_lat": 37.728,
+        "data_type": "조수간만",
+        "obs_post_name": "강화하리",
+        "obs_lon": 126.286,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1258",
+        "obs_lat": 37.415,
+        "data_type": "조수간만",
+        "obs_post_name": "잠진도",
+        "obs_lon": 126.415,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1259",
+        "obs_lat": 37.243,
+        "data_type": "조수간만",
+        "obs_post_name": "자월도",
+        "obs_lon": 126.318,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1260",
+        "obs_lat": 36.502,
+        "data_type": "조수간만",
+        "obs_post_name": "방포항",
+        "obs_lon": 126.325,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1261",
+        "obs_lat": 36.249,
+        "data_type": "조수간만",
+        "obs_post_name": "무창포항",
+        "obs_lon": 126.534,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1262",
+        "obs_lat": 35.62,
+        "data_type": "조수간만",
+        "obs_post_name": "격포항",
+        "obs_lon": 126.463,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1263",
+        "obs_lat": 35.447,
+        "data_type": "조수간만",
+        "obs_post_name": "구시포항",
+        "obs_lon": 126.425,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1264",
+        "obs_lat": 35.39,
+        "data_type": "조수간만",
+        "obs_post_name": "계마항",
+        "obs_lon": 126.401,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1265",
+        "obs_lat": 35.271,
+        "data_type": "조수간만",
+        "obs_post_name": "송이도",
+        "obs_lon": 126.15,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1266",
+        "obs_lat": 34.576,
+        "data_type": "조수간만",
+        "obs_post_name": "남열항",
+        "obs_lon": 127.48,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1267",
+        "obs_lat": 35.99,
+        "data_type": "조수간만",
+        "obs_post_name": "구룡포항",
+        "obs_lon": 129.555,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1268",
+        "obs_lat": 37.117,
+        "data_type": "조수간만",
+        "obs_post_name": "궁평항",
+        "obs_lon": 126.68,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1270",
+        "obs_lat": 37.004,
+        "data_type": "조수간만",
+        "obs_post_name": "삼길포항",
+        "obs_lon": 126.452,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1271",
+        "obs_lat": 36.748,
+        "data_type": "조수간만",
+        "obs_post_name": "어은돌항",
+        "obs_lon": 126.129,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1269",
+        "obs_lat": 36.081,
+        "data_type": "조수간만",
+        "obs_post_name": "연도항",
+        "obs_lon": 126.442,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1272",
+        "obs_lat": 35.054,
+        "data_type": "조수간만",
+        "obs_post_name": "다대포항",
+        "obs_lon": 128.972,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1277",
+        "obs_lat": 33.237,
+        "data_type": "조수간만",
+        "obs_post_name": "화순항",
+        "obs_lon": 126.334,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1274",
+        "obs_lat": 38.446,
+        "data_type": "조수간만",
+        "obs_post_name": "거진항",
+        "obs_lon": 128.456,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1275",
+        "obs_lat": 38.355,
+        "data_type": "조수간만",
+        "obs_post_name": "공현진항",
+        "obs_lon": 128.513,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1276",
+        "obs_lat": 38.27,
+        "data_type": "조수간만",
+        "obs_post_name": "아야진항",
+        "obs_lon": 128.557,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1273",
+        "obs_lat": 37.288,
+        "data_type": "조수간만",
+        "obs_post_name": "장호항",
+        "obs_lon": 129.317,
+        "obs_object": "조수간만"
+      },
+      {
+        "obs_post_id": "SO_1278",
+        "obs_lat": 34.781,
+        "data_type": "조수간만",
+        "obs_post_name": "원평항",
+        "obs_lon": 125.908,
+        "obs_object": "조수간만"
+      }
+    ]
+  }
+}

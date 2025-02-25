@@ -18,7 +18,7 @@ def insert_tidal_data():
         print(f"Error loading JSON file: {e}")
         return
 
-    from main import engine, TidalObservation
+    from models.model import engine, TidalObservation
 
     # SQLAlchemy 세션 생성
     Session = sessionmaker(bind=engine)
@@ -84,7 +84,7 @@ def insert_fishing_place_data():
         if not isinstance(place.get('usage_fee'), str):
             place['usage_fee'] = str(place['usage_fee'])
 
-    from main import engine, FishingPlace
+    from models.model import engine, FishingPlace
 
     # SQLAlchemy 세션 생성
     Session = sessionmaker(bind=engine)

@@ -1,14 +1,13 @@
 # Resource files
-backend/data/*
-backend/models/*
-backend/uploads/*
-backend/__pycache__/*
-backend/services/__pycache__/*
-backend/.env
-frontend/node_modules/*
-frontend/.env
+backend/app/data/*
+**/.env
+**/node_modules/*
+**/package-lock.json
 
 # Cache Files
 __pycache__/*
+**/__pycache__/*
+**/__pycache__
 .DS_Store
 **/.DS_Store
+**/uploads
