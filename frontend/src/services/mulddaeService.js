@@ -15,7 +15,7 @@ export async function fetchMulddae(date) {
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error("Error fetching mulddae data:", error);
     return { error: error.message };
