@@ -22,7 +22,7 @@ from utils import allowed_file, optimize_image, get_full_url, success_response, 
 from models.model import (
     Session,
     User, Catch, AIConsent, CommunicationBoard, PostLike,
-    PostComment, FishingPlace
+    PostComment, FishingPlace, TidalObservation
 )
 
 def set_route(app: Flask, model, device):
@@ -634,61 +634,63 @@ def set_route(app: Flask, model, device):
     # 요청 위치 기준 가장 가까운 관 위치 반환 
     @app.route('/backend/closest-sealoc', methods=['POST', 'GET'])
     def get_closest_sealoc():
-        user_lat = request.form.get('lat')
-        user_lon = request.form.get('lon')
+        lat = request.form.get('lat')
+        lon = request.form.get('lon')
 
-        if user_lat is None or user_lon is None:
-            return jsonify({'error': 'Invalid input'}), 400
+        if lat is None or lon is None:
+            return error_response('입력값이 잘못되었습니다.', 
+                                  'Invalid input',
+                                  400)
 
         session = Session()
         
         ## ST_Distance_Sphere를 사용하여 MySQL에 직접 거리 계산
         # 조위, 수온, 기온 , 기압 4개 모두 체 가능한 우
-        query_obsrecent = text("""
-            SELECT obs_station_id, obs_post_id, obs_post_name,
-                ST_Distance_Sphere(POINT(:lon, :lat), POINT(obs_lon, obs_lat)) AS distance
-            FROM TidalObservations
-            WHERE obs_object LIKE '%조위%'
-                AND obs_object LIKE '%수온%'
-                AND obs_object LIKE '%기온%'
-                AND obs_object LIKE '%기압%'
-            ORDER BY distance ASC
-            LIMIT 1;
-        """)
+        query_obsrecent = session.query(
+                TidalObservation.obs_station_id,
+                TidalObservation.obs_post_id,
+                TidalObservation.obs_post_name,
+                func.ST_Distance_Sphere(
+                    func.Point(lon, lat), func.Point(TidalObservation.obs_lon, TidalObservation.obs_lat)
+                ).label('distance')
+            ).filter(
+                TidalObservation.obs_object.like('%조위%'),
+                TidalObservation.obs_object.like('%수온%'),
+                TidalObservation.obs_object.like('%기온%'),
+                TidalObservation.obs_object.like('%기압%')
+            ).order_by('distance').first()
         
         # 조수간 태그 + 없음 제거
-        query_obspretab = text("""
-            SELECT obs_station_id, obs_post_id, obs_post_name,
-                ST_Distance_Sphere(POINT(:lon, :lat), POINT(obs_lon, obs_lat)) AS distance
-            FROM TidalObservations
-            WHERE obs_object LIKE '%조수간만%'
-                AND obs_object NOT LIKE '%없음%'
-            ORDER BY distance ASC
-            LIMIT 1;
-        """)
-
+        query_obspretab = session.query(
+                TidalObservation.obs_station_id,
+                TidalObservation.obs_post_id,
+                TidalObservation.obs_post_name,
+                func.ST_Distance_Sphere(
+                    func.Point(lon, lat), func.Point(TidalObservation.obs_lon, TidalObservation.obs_lat)
+                ).label('distance')
+            ).filter(
+                TidalObservation.obs_object.like('%조수간만%'),
+                TidalObservation.obs_object.notlike('%없음%')
+            ).order_by('distance').first()
+            
         try:
-            #  개 쿼리 실행
-            result_obsrecent = session.execute(query_obsrecent, {'lat': user_lat, 'lon': user_lon}).fetchone()
-            result_obspretab = session.execute(query_obspretab, {'lat': user_lat, 'lon': user_lon}).fetchone()
-
-            if result_obsrecent and result_obspretab:
-                print(f"obs recent : {result_obsrecent}")
-                print(f"obs pretab : {result_obspretab}")
+            if query_obsrecent and query_obspretab:
+                print(f"obs recent : {query_obsrecent}")
+                print(f"obs pretab : {query_obspretab}")
                 # 조위 관측 정보
                 obsrecent_data = {
-                    'obs_station_id': result_obsrecent[0],
-                    'obs_post_id': result_obsrecent[1],
-                    'obs_post_name': result_obsrecent[2],
-                    'distance': result_obsrecent[3] / 1000
+                    'obs_station_id': query_obsrecent[0],
+                    'obs_post_id': query_obsrecent[1],
+                    'obs_post_name': query_obsrecent[2],
+                    'distance': query_obsrecent[3] / 1000
                 }
 
                 # 조수간만 관측소 정보
                 obspretab_data = {
-                    'obs_station_id': result_obspretab[0],
-                    'obs_post_id': result_obspretab[1],
-                    'obs_post_name': result_obspretab[2],
-                    'distance': result_obspretab[3] / 1000
+                    'obs_station_id': query_obspretab[0],
+                    'obs_post_id': query_obspretab[1],
+                    'obs_post_name': query_obspretab[2],
+                    'distance': query_obspretab[3] / 1000
                 }
 
                 # KHOA API 호출
@@ -729,8 +731,6 @@ def set_route(app: Flask, model, device):
             
             if not lat or not lon:
                 return jsonify({'error': 'Latitude and longitude are required'}), 400
-            
-            print(f"lat : {lat}, lon : {lon}")
                 
             try:
                 lat = float(lat)
