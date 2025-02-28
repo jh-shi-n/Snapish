@@ -15,7 +15,7 @@ import requests
 from config import BaseConfig
 from decorator import token_required
 from services.weather_service import get_sea_weather_by_seapostid, get_weather_by_coordinates
-from services.lunar_mulddae import get_mulddae_cycle, calculate_moon_phase
+from services.lunar_tide_cycle_info import get_tide_cycle, calculate_moon_phase
 from services.openai_assistant import assistant_talk_request, assistant_talk_get
 from utils import allowed_file, optimize_image, get_full_url, success_response, error_response
 
@@ -33,7 +33,7 @@ def set_route(app: Flask, model, device):
 
     # 물떼 정보 받아오기
     @app.route('/api/tide-cycles', methods=['GET'])
-    def get_mulddae():
+    def get_tide_cycles_info():
         now_date = request.args.get('nowdate')
         if not now_date:
             return error_response("'nowdate' 파라미터가 필요합니다.",
@@ -47,7 +47,7 @@ def set_route(app: Flask, model, device):
                                 400)
 
         try:
-            lunar_date, seohae, other = get_mulddae_cycle(parsed_date)
+            lunar_date, seohae, other = get_tide_cycle(parsed_date)
             moon_phase = calculate_moon_phase(parsed_date)
             
             json_result = {
