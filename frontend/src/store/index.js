@@ -5,9 +5,6 @@ import { fetchMulddae } from "../services/mulddaeService";
 
 const baseUrl = process.env.VUE_APP_BASE_URL;
 
-// Existing actions
-let isFetching = false;
-
 export default createStore({
   state: {
     // Existing state
@@ -16,6 +13,7 @@ export default createStore({
     error: null,
     mulddae: JSON.parse(localStorage.getItem('mulddae')) || null, // 물때 정보 추가
     mulddaeDate: null,
+    isFetching: false,
 
     // Authentication state
     isAuthenticated: !!localStorage.getItem("token"),
@@ -40,6 +38,9 @@ export default createStore({
     },
     setError(state, error) {
       state.error = error;
+    },  
+    setFetching(state, status) {
+      state.isFetching = status;
     },
     setMulddae(state, mulddae) {
       state.mulddae = mulddae; // 물때 정보 업데이트
@@ -118,14 +119,10 @@ export default createStore({
     }
   },
   actions: {
-    async fetchMulddae({ commit }) {
-      if (isFetching) {
-        console.log("info: Already fetching mulddae data, request ignored.");
-        return;
-      }
+    async fetchMulddaeInfo({ commit, state }) {
 
       console.log("vuex : fetchMulddae action triggered.");
-      isFetching = true;
+      state.isFetching = true;
       commit("setLoading", true);
 
       try {
@@ -153,6 +150,7 @@ export default createStore({
             );
           }
 
+          // Call API Endpoint
           const mulddaeData = await fetchMulddae(today);
           commit("setMulddae", mulddaeData);
 
@@ -171,7 +169,7 @@ export default createStore({
         console.error("Error fetching mulddae:", error);
         commit("setError", error);
       } finally {
-        isFetching = false;
+        commit("setFetching", false); 
         commit("setLoading", false);
       }
     },
@@ -385,7 +383,7 @@ export default createStore({
     async fetchInitialData({ dispatch }) {
       try {
         await Promise.all([
-          dispatch('fetchMulddae'),
+          dispatch('fetchMulddaeInfo'),
           dispatch('fetchCatches'),
           dispatch('fetchHotIssues')
         ]);
