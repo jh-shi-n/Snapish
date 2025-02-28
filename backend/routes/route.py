@@ -32,9 +32,9 @@ def set_route(app: Flask, model, device):
         return 'Welcome to SNAPISH'
 
     # 물떼 정보 받아오기
-    @app.route('/backend/mulddae', methods=['POST', 'GET'])
+    @app.route('/api/tidecycle', methods=['GET'])
     def get_mulddae():
-        now_date = request.form.get('nowdate')
+        now_date = request.args.get('nowdate')
         if not now_date:
             return error_response("'nowdate' 파라미터가 필요합니다.",
                                 "Bad Request",
