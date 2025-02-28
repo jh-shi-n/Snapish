@@ -136,7 +136,7 @@ export default createStore({
         const MAX_AGE = 3600000;
         const isExpired = cachedTimestamp && (now.getTime() - parseInt(cachedTimestamp) > MAX_AGE);
 
-        if (cachedMulddae && cachedDate === today && !isExpired) {
+        if (cachedMulddae !== "null" && cachedDate === today && !isExpired) {
           console.log("success : Loaded mulddae from localStorage.");
           commit("setMulddae", JSON.parse(cachedMulddae));
         } else {
@@ -144,10 +144,14 @@ export default createStore({
             console.log(
               "info : mulddaeDate is not found in localStorage, fetching new data."
             );
-          } else if (cachedDate !== today) {
+          }
+          if (cachedDate !== today) {
             console.log(
               "info : Cached date is different from today, fetching new data."
             );
+          }
+          if (!cachedMulddae == "null") {
+            console.log("info : CachedMulddae is corrupted, fetching new data.");
           }
 
           // Call API Endpoint
