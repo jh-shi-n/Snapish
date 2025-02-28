@@ -4,18 +4,17 @@ from sqlalchemy.exc import SQLAlchemyError
 import os
 import json
 
-def insert_tidal_data():
-    # 프로젝트 루트 디렉토리를 기준으로 경로 설정
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # backend의 절대 경로
-    JSON_FILE_PATH = os.path.join(BASE_DIR, "data", "tidal_observations.json")
-
+def insert_tidal_data(json_file_path):
+    """
+    데이터베이스 내 해양 관측소 데이터를 JSON 파일을 통해 업데이트
+    """
     # JSON 파일 읽기
     try:
-        with open(JSON_FILE_PATH, "r", encoding="utf-8") as f:
+        with open(json_file_path, "r", encoding="utf-8") as f:
             origin_data = json.load(f)
         data = [x for x in origin_data['result']['data']]
     except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Error loading JSON file: {e}")
+        print(f"Error loading Tidal JSON file: {e}")
         return
 
     from models.model import engine, TidalObservation
@@ -26,37 +25,29 @@ def insert_tidal_data():
 
     try:
         # 기존 obs_post_id 조회
-        existing_obs_post_ids = {
-            row.obs_post_id for row in session.query(TidalObservation.obs_post_id).all()
-        }
+        result = session.execute(
+            select(TidalObservation.obs_post_id)
+        )
+        existing_obs_post_ids = result.scalars().all()
 
-        # 삽입할 데이터 필터링
-        new_data = []
-        for entry in data:
-            try:
-                # 데이터 유효성 검증 및 타입 변환
-                new_data.append(TidalObservation(
-                    obs_post_id=entry['obs_post_id'],
-                    data_type=entry['data_type'],
-                    obs_post_name=entry['obs_post_name'],
-                    obs_lat=float(entry['obs_lat']),
-                    obs_lon=float(entry['obs_lon']),
-                    obs_object=entry['obs_object'],
-                ))
-            except (KeyError, ValueError, TypeError) as e:
-                print(f"Skipping invalid entry: {entry}, Error: {e}")
-
-        # 중복 데이터 필터링
-        new_data = [entry for entry in new_data if entry.obs_post_id not in existing_obs_post_ids]
-
-        if not new_data:
-            print("No new tidal observations to insert.")
-            return
+        # 새 데이터 필터링 및 딕셔너리 리스트 변환
+        new_data = [
+            {
+                "obs_post_id" : entry['obs_post_id'],
+                "data_type" : entry['data_type'],
+                "obs_post_name" : entry['obs_post_name'],
+                "obs_lat" : float(entry['obs_lat']),
+                "obs_lon" : float(entry['obs_lon']),
+                "obs_object" : entry['obs_object'],
+            }
+            for entry in data if entry["obs_post_id"] not in existing_obs_post_ids
+        ]
 
         # 데이터 삽입
-        session.bulk_save_objects(new_data)
+        session.execute(insert(TidalObservation), new_data)
         session.commit()
         print(f"Inserted {len(new_data)} new tidal observations.")
+        
     except SQLAlchemyError as e:
         session.rollback()
         print(f"Database error: {e}")
@@ -65,14 +56,13 @@ def insert_tidal_data():
 
             
 # 데이터 삽입 함수
-def insert_fishing_place_data():
-    # 프로젝트 루트 디렉토리를 기준으로 경로 설정
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # backend 디렉토리의 절대 경로
-    JSON_FILE_PATH = os.path.join(BASE_DIR, "data", "fishing_place_v1.json")
-
+def insert_fishing_place_data(json_file_path):
+    """
+    데이터베이스 내 낚시터 정보 데이터를 JSON 파일을 통해 업데이트
+    """
     # JSON 파일 읽기
     try:
-        with open(JSON_FILE_PATH, "r", encoding="utf-8") as f:
+        with open(json_file_path, "r", encoding="utf-8") as f:
             origin_data = json.load(f)
         data = origin_data['fishing']
     except (FileNotFoundError, json.JSONDecodeError) as e:
@@ -92,52 +82,41 @@ def insert_fishing_place_data():
 
     try:
         # 기존 fishing_place_id 조회
-        existing_fishing_place_ids = {
-            row.fishing_place_id for row in session.query(FishingPlace.fishing_place_id).all()
-        }
+        result = session.execute(
+            select(FishingPlace.fishing_place_id)
+        )
+        existing_fishing_place_ids = result.scalars().all()
 
-        # 삽입할 데이터 필터링
-        new_data = []
-        for entry in data:
-            try:
-                # 데이터 유효성 검증 및 타입 변환
-                new_data.append(FishingPlace(
-                    fishing_place_id=entry['fishing_place_id'],
-                    name=entry['name'],
-                    type=entry['type'],
-                    address_road=entry['address_road'],
-                    address_land=entry['address_land'],
-                    latitude=float(entry['latitude']),
-                    longitude=float(entry['longitude']),
-                    phone_number=entry.get('phone_number'),
-                    main_fish_species=entry.get('main_fish_species'),
-                    usage_fee=entry.get('usage_fee'),
-                    safety_facilities=entry.get('safety_facilities'),
-                    convenience_facilities=entry.get('convenience_facilities')
-                ))
-            except (KeyError, ValueError, TypeError) as e:
-                print(f"Skipping invalid entry: {entry}, Error: {e}")
-
-        # 중복 데이터 필터링
-        new_data = [entry for entry in new_data if entry.fishing_place_id not in existing_fishing_place_ids]
+        # 새 데이터 필터링 및 딕셔너리 리스트 변환
+        new_data = [
+            {
+                "fishing_place_id": entry["fishing_place_id"],
+                "name": entry["name"],
+                "type": entry["type"],
+                "address_road": entry["address_road"],
+                "address_land": entry["address_land"],
+                "latitude": float(entry["latitude"]),
+                "longitude": float(entry["longitude"]),
+                "phone_number": entry.get("phone_number"),
+                "main_fish_species": entry.get("main_fish_species"),
+                "usage_fee": entry.get("usage_fee"),
+                "safety_facilities": entry.get("safety_facilities"),
+                "convenience_facilities": entry.get("convenience_facilities"),
+            }
+            for entry in data if entry["fishing_place_id"] not in existing_fishing_place_ids
+        ]
 
         if not new_data:
             print("No new fishing places to insert.")
             return
 
         # 데이터 삽입
-        session.bulk_save_objects(new_data)
+        session.execute(insert(FishingPlace), new_data)
         session.commit()
         print(f"Inserted {len(new_data)} new fishing places.")
+        
     except SQLAlchemyError as e:
         session.rollback()
         print(f"Database error: {e}")
     finally:
         session.close()
-
-
-
-# 서비스 초기화 함수 (앱 시작 시 데이터 삽입 호출)
-def initialize_service():
-    insert_tidal_data()
-    insert_fishing_place_data()
