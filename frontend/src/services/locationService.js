@@ -7,8 +7,8 @@ export async function fetchSeaPostidByCoordinates(lat, lon) {
   try {
     const response = await axios.post(
       apisealocBaseUrl,
-      new URLSearchParams({ lat: lat, lon: lon }).toString()
-      , {
+      new URLSearchParams({ lat: lat, lon: lon }).toString(), 
+      {
         headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         }
