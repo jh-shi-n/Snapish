@@ -631,9 +631,9 @@ def set_route(app: Flask, model, device):
         else:
             return jsonify({'error': 'Invalid file type'}), 400
         
-    # 요청 위치 기준 가장 가까운 관 위치 반환 
-    @app.route('/backend/closest-sealoc', methods=['POST', 'GET'])
-    def get_closest_sealoc():
+    # 요청 지점 위치와 가장 가까운 관측소의 해양 날씨 API 호출
+    @app.route('/api/get-seaweather', methods=['POST', 'GET'])
+    def get_sea_weather_api():
         lat = request.form.get('lat')
         lon = request.form.get('lon')
 
@@ -642,37 +642,43 @@ def set_route(app: Flask, model, device):
                                   'Invalid input',
                                   400)
 
-        session = Session()
-        
-        ## ST_Distance_Sphere를 사용하여 MySQL에 직접 거리 계산
-        # 조위, 수온, 기온 , 기압 4개 모두 체 가능한 우
-        query_obsrecent = session.query(
-                TidalObservation.obs_station_id,
-                TidalObservation.obs_post_id,
-                TidalObservation.obs_post_name,
-                func.ST_Distance_Sphere(
-                    func.Point(lon, lat), func.Point(TidalObservation.obs_lon, TidalObservation.obs_lat)
-                ).label('distance')
-            ).filter(
-                TidalObservation.obs_object.like('%조위%'),
-                TidalObservation.obs_object.like('%수온%'),
-                TidalObservation.obs_object.like('%기온%'),
-                TidalObservation.obs_object.like('%기압%')
-            ).order_by('distance').first()
-        
-        # 조수간 태그 + 없음 제거
-        query_obspretab = session.query(
-                TidalObservation.obs_station_id,
-                TidalObservation.obs_post_id,
-                TidalObservation.obs_post_name,
-                func.ST_Distance_Sphere(
-                    func.Point(lon, lat), func.Point(TidalObservation.obs_lon, TidalObservation.obs_lat)
-                ).label('distance')
-            ).filter(
-                TidalObservation.obs_object.like('%조수간만%'),
-                TidalObservation.obs_object.notlike('%없음%')
-            ).order_by('distance').first()
+        ## ST_Distance_Sphere를 사용하여 DB 내 데이터 비교 후 조건에 맞는 데이터 선정 (1)
+        try:
+            with Session() as session:
+                query_obsrecent = session.query(
+                        TidalObservation.obs_station_id,
+                        TidalObservation.obs_post_id,
+                        TidalObservation.obs_post_name,
+                        func.ST_Distance_Sphere(
+                            func.Point(lon, lat), func.Point(TidalObservation.obs_lon, TidalObservation.obs_lat)
+                        ).label('distance')
+                    ).filter(
+                        TidalObservation.obs_object.like('%조위%'),
+                        TidalObservation.obs_object.like('%수온%'),
+                        TidalObservation.obs_object.like('%기온%'),
+                        TidalObservation.obs_object.like('%기압%')
+                    ).order_by('distance').first()
+        except:
+            query_obsrecent = None
             
+        ## ST_Distance_Sphere를 사용하여 DB 내 데이터 비교 후 조건에 맞는 데이터 선정 (2)
+        try:
+            with Session() as session:
+                query_obspretab = session.query(
+                        TidalObservation.obs_station_id,
+                        TidalObservation.obs_post_id,
+                        TidalObservation.obs_post_name,
+                        func.ST_Distance_Sphere(
+                            func.Point(lon, lat), func.Point(TidalObservation.obs_lon, TidalObservation.obs_lat)
+                        ).label('distance')
+                    ).filter(
+                        TidalObservation.obs_object.like('%조수간만%'),
+                        TidalObservation.obs_object.notlike('%없음%')
+                    ).order_by('distance').first()
+        except:
+            query_obspretab = None
+        
+        # 선정된 데이터 기반 해양 관측소 API 호출    
         try:
             if query_obsrecent and query_obspretab:
                 print(f"obs recent : {query_obsrecent}")
@@ -699,8 +705,8 @@ def set_route(app: Flask, model, device):
                         'obsrecent': obsrecent_data['obs_post_id'],
                         'obspretab': obspretab_data['obs_post_id']
                     })
-                    
-                    # 프론트엔드에 보낼 데이터 구성
+
+                    # 프론트엔드 내 렌더링 데이터 구성
                     closest_data = {
                         'obsrecent': {
                             **obsrecent_data,
@@ -711,16 +717,21 @@ def set_route(app: Flask, model, device):
                             'api_response': api_data['obspretab']
                         }
                     }
-                    return jsonify(closest_data)
+                    return success_response("요청이 성공적으로 처리되었습니다",
+                                            closest_data)
 
-                except requests.exceptions.RequestException as e:
-                    return jsonify({'error': f'API request failed: {e}'}), 500
-
+                except Exception as e:
+                    return error_response('API request failed',
+                                          e,
+                                          500)
             else:
-                return jsonify({'error': 'No tidal observations found'}), 404
-
-        finally:
-            session.close()
+                return error_response("잘못된 요청입니다.",
+                                      'Not Found : Tidal observations', 
+                                      400)
+        except Exception as e:
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                'Internal Server Error', 
+                                500)
             
     @app.route('/backend/get-weather', methods=['POST', 'GET'])
     def get_weather_api():

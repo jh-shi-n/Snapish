@@ -1,7 +1,7 @@
 import axios from "@/axios";
 
 const baseUrl = process.env.VUE_APP_BASE_URL;
-const apisealocBaseUrl = `${baseUrl}/backend/closest-sealoc`;
+const apisealocBaseUrl = `${baseUrl}/api/get-seaweather`;
 
 export async function fetchSeaPostidByCoordinates(lat, lon) {
   try {
@@ -14,9 +14,17 @@ export async function fetchSeaPostidByCoordinates(lat, lon) {
         }
       }
     );
-    return response.data;
+
+    if (response.status === 200) {
+      return response.data.data;
+
+    } else {
+      return null
+    }
+    
+      
   } catch (error) {
-      console.error("Error fetching weather data:", error);
+      console.error("Error fetching sea weather data:", error);
     return { error: error.message };
   }
 }
