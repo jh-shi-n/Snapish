@@ -632,7 +632,7 @@ def set_route(app: Flask, model, device):
             return jsonify({'error': 'Invalid file type'}), 400
         
     # 요청 지점 위치와 가장 가까운 관측소의 해양 날씨 API 호출
-    @app.route('/api/get-seaweather', methods=['POST', 'GET'])
+    @app.route('/api/get-seaweather', methods=['POST'])
     def get_sea_weather_api():
         lat = request.form.get('lat')
         lon = request.form.get('lon')
@@ -726,40 +726,46 @@ def set_route(app: Flask, model, device):
                                           500)
             else:
                 return error_response("잘못된 요청입니다.",
-                                      'Not Found : Tidal observations', 
+                                      'Bad Request', 
                                       400)
         except Exception as e:
             return error_response("요청 진행 중 오류가 발생하였습니다.",
                                 'Internal Server Error', 
                                 500)
             
-    @app.route('/backend/get-weather', methods=['POST', 'GET'])
+    @app.route('/api/get-weather', methods=['POST'])
     def get_weather_api():
         try:
-            # Get and validate coordinates
             lat = request.form.get('lat')
             lon = request.form.get('lon')
             
             if not lat or not lon:
-                return jsonify({'error': 'Latitude and longitude are required'}), 400
-                
+                return error_response("잘못된 요청입니다.", 
+                                    'Latitude and longitude are required', 
+                                    400)
             try:
                 lat = float(lat)
                 lon = float(lon)
-            except ValueError:
-                return jsonify({'error': 'Invalid coordinate format'}), 400
-            
+                
+            except Exception as e:
+                return error_response("잘못된 요청입니다",
+                                    'Invalid coordinate format',
+                                    400)
             # Get weather data
             weather_data = get_weather_by_coordinates(lat, lon)
             if not weather_data:
-                return jsonify({'error': 'Failed to fetch weather data'}), 500
+                return error_response('API 호출 진행 중 문제가 발생하였습니다.',
+                                        'Internal Server Error',
+                                        500)
                 
-            return jsonify(weather_data)
+            return success_response("요청을 성공적으로 처리하였습니다.", 
+                                    weather_data)
             
         except Exception as e:
-            logging.error(f"Error in get_weather_api: {str(e)}")
-            return jsonify({'error': 'Internal server error'}), 500
-
+            return error_response("요청 진행 중 문제가 발생하였습니다.",
+                                  "Internal Server Error",
+                                  500)
+                
     @app.route('/api/consent/check', methods=['GET'])
     @token_required
     def check_consent(user_id):
