@@ -4,19 +4,19 @@
 > 메인 이미지 클릭 시, 프로젝트 발표 자료로 이동됩니다!
 
 ## 🔍 프로젝트 개요
-Snapish는 대한민국 1,000만 낚시인들을 위한 딥러닝 기반 금어종 판별 시스템입니다. 국립수산과학원의 [금어기·금지체장 정보](https://www.nifs.go.kr/contents/actionContentsCons0148.do)를 기반으로 개발되었으며, 낚시 종사자들의 법규 준수와 해양 생태계 보호를 지원합니다. 현재 17개 어종에 대해 88%의 탐지 정확도를 달성했으며, 사용자 참여형 데이터 수집을 통해 95% 이상의 정확도 달성을 목표로 하고 있습니다.
+Snapish는 대한민국 1,000만 낚시인들을 위한 딥러닝 기반 금어종 판별 시스템입니다. 국립수산과학원의 [금어기·금지체장 정보](https://www.nifs.go.kr/contents/actionContentsCons0148.do)를 기반으로 개발되었으며, 낚시 종사자들의 법규 준수와 해양 생태계 보호를 지원합니다. 현재 17개 어종에 대해 88%(mAP50)의 탐지 정확도를 달성했으며, 인공지능 모델 레이어 개선과 사용자 참여형 데이터 수집을 통해 95% 이상의 정확도 달성을 목표로 하고 있습니다.
 
 ## 📌 프로젝트 정보
 - **기간**: 2024.12.03 ~ 2025.01.02 (평일 26일)
 - **인원**: 4인
 - **역할**
-  - 👑 팀 리더 / AI 모델 개발
+  - 👑 AI 모델 개발
   - 💻 백엔드 개발
   - 🎨 프론트엔드 개발
   - 📊 DB 설계 및 데이터 수집
  
 ## ✨ 주요 기능
-- 🔍 17개 주요 어종/금어종 판별 기능 제공
+- 🔍 17개 주요 금어기 판별 기능 제공
 - 📖 어종별 특징 및 금지체장 가이드라인 제공
 - 📝 내가 잡은 물고기 리스팅 기록 시스템 제공
 - 🌊 오늘의 낚시 스팟 및 물떼/날씨 정보 제공
@@ -76,32 +76,60 @@ conda activate snapish
 - 🔬 [모델 학습 프로세스](https://www.kaggle.com/code/twoimo/yolo11-fish-transfer-learning) → `/backend/`
 
 ### 3️⃣ 서비스 실행
-백엔드 서버:
-```bash
-# Windows
-$env:FLASK_APP="main.py"
-flask run --host=0.0.0.0
 
-# Mac/Linux
-export FLASK_APP="main.py"
-flask run --host=0.0.0.0
+#### 데이터베이스 설정
+```bash
+# MySQL 서버 실행 확인
+mysql -u root -p
+# 데이터베이스 생성
+CREATE DATABASE snapish;
+# 데이터베이스 사용자 설정
+GRANT ALL PRIVILEGES ON snapish.* TO 'snapish_user'@'localhost' IDENTIFIED BY 'your_password';
+FLUSH PRIVILEGES;
 ```
 
-프론트엔드 개발 서버:
+#### 포트 설정
+```bash
+# 백엔드 포트 설정 (.env 파일)
+# 프론트엔드 포트 설정 (vue.config.js, .env)
+```
+
+#### 백엔드 서버 실행:
+```bash
+# Windows
+cd backend
+$env:FLASK_APP="main.py"
+flask run --host=0.0.0.0 --port=5000
+
+# Mac/Linux
+cd backend
+export FLASK_APP="main.py"
+flask run --host=0.0.0.0 --port=5000
+```
+
+#### 프론트엔드 개발 서버 실행:
 ```bash
 cd frontend
 npm install
 npm run serve
 ```
 
+#### 서비스 접속
+서비스 실행 후, Google Chrome 브라우저를 열고 다음 URL로 접속하세요:
+```
+http://localhost:80/
+```
+> 💡 백엔드 서버(5000번 포트)와 프론트엔드 서버(80번 포트)가 모두 정상 작동해야 서비스가 정상적으로 동작합니다.
+
 ## 📈 성과 및 향후 계획
 
 ### 🏆 현재 성과
-- 17개 어종 대상 식별 정확도 88% 달성
+- 17개 어종 대상 식별 정확도 88% 달성 (mAP50)
 - 전국 낚시터 약 2,000개 이상의 데이터베이스 구축
 
 ### 🎯 개선 계획
-- 크라우드소싱 기반 데이터 수집으로 정확도 95% 이상 달성
+- 인공지능 모델 성능 개선 (Self-supervised learning, Vision transformer)
+- 사용자 참여형 데이터 수집으로 정확도 95% 이상 달성
 - 탐지 가능한 물고기 어종 확대 (30종 이상, 바다 고기, 민물 고기 등)
 - 실시간 낚시터 정보 공유 커뮤니티 기능 구현
 - 낚시터 스토어 및 선박 사전 예약 기능 구현
