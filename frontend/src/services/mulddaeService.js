@@ -6,7 +6,8 @@ const apimulddaeBaseUrl = `${baseUrl}/api/tide-cycles`;
 export async function fetchMulddae(date) {
   console.log(`Call_fetchMulddae : ${date}`);
   try {
-    const response = await axios.get(apimulddaeBaseUrl,{
+    const response = await axios.get(
+      apimulddaeBaseUrl,{
         params: {
           nowdate: date,
         },
