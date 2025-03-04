@@ -15,14 +15,14 @@ import requests
 from config import BaseConfig
 from decorator import token_required
 from services.weather_service import get_sea_weather_by_seapostid, get_weather_by_coordinates
-from services.lunar_mulddae import get_mulddae_cycle, calculate_moon_phase
+from services.lunar_tide_cycle_info import get_tide_cycle, calculate_moon_phase
 from services.openai_assistant import assistant_talk_request, assistant_talk_get
 from utils import allowed_file, optimize_image, get_full_url, success_response, error_response
 
 from models.model import (
     Session,
     User, Catch, AIConsent, CommunicationBoard, PostLike,
-    PostComment, FishingPlace
+    PostComment, FishingPlace, TidalObservation
 )
 
 def set_route(app: Flask, model, device):
@@ -33,7 +33,7 @@ def set_route(app: Flask, model, device):
 
     # 물떼 정보 받아오기
     @app.route('/api/tide-cycles', methods=['GET'])
-    def get_mulddae():
+    def get_tide_cycles_info():
         now_date = request.args.get('nowdate')
         if not now_date:
             return error_response("'nowdate' 파라미터가 필요합니다.",
@@ -47,7 +47,7 @@ def set_route(app: Flask, model, device):
                                 400)
 
         try:
-            lunar_date, seohae, other = get_mulddae_cycle(parsed_date)
+            lunar_date, seohae, other = get_tide_cycle(parsed_date)
             moon_phase = calculate_moon_phase(parsed_date)
             
             json_result = {
@@ -563,7 +563,7 @@ def set_route(app: Flask, model, device):
             logging.error(f"Error in get_detections: {e}")
             return jsonify({'error': 'Internal server error'}), 500
 
-    @app.route('/api/map_fishing_spot', methods=['POST', 'GET'])
+    @app.route('/api/map_fishing_spot', methods=['GET', 'POST'])
     # 추후 Token 관련 데코레이터 ��가할 것
     def map_fishing_spot():
         session = Session()
@@ -596,7 +596,7 @@ def set_route(app: Flask, model, device):
         
 
     # Endpoint to handle avatar upload
-    @app.route('/profile/avatar', methods=['POST', 'GET'])
+    @app.route('/profile/avatar', methods=['POST'])
     @token_required
     def upload_avatar(user_id):
         if 'avatar' not in request.files:
@@ -631,64 +631,72 @@ def set_route(app: Flask, model, device):
         else:
             return jsonify({'error': 'Invalid file type'}), 400
         
-    # 요청 위치 기준 가장 가까운 관 위치 반환 
-    @app.route('/backend/closest-sealoc', methods=['POST', 'GET'])
-    def get_closest_sealoc():
-        user_lat = request.form.get('lat')
-        user_lon = request.form.get('lon')
+    # 요청 지점 위치와 가장 가까운 관측소의 해양 날씨 API 호출
+    @app.route('/api/weather/sea', methods=['POST'])
+    def get_sea_weather_api():
+        lat = request.form.get('lat')
+        lon = request.form.get('lon')
 
-        if user_lat is None or user_lon is None:
-            return jsonify({'error': 'Invalid input'}), 400
+        if lat is None or lon is None:
+            return error_response('입력값이 잘못되었습니다.', 
+                                  'Invalid input',
+                                  400)
 
-        session = Session()
-        
-        ## ST_Distance_Sphere를 사용하여 MySQL에 직접 거리 계산
-        # 조위, 수온, 기온 , 기압 4개 모두 체 가능한 우
-        query_obsrecent = text("""
-            SELECT obs_station_id, obs_post_id, obs_post_name,
-                ST_Distance_Sphere(POINT(:lon, :lat), POINT(obs_lon, obs_lat)) AS distance
-            FROM TidalObservations
-            WHERE obs_object LIKE '%조위%'
-                AND obs_object LIKE '%수온%'
-                AND obs_object LIKE '%기온%'
-                AND obs_object LIKE '%기압%'
-            ORDER BY distance ASC
-            LIMIT 1;
-        """)
-        
-        # 조수간 태그 + 없음 제거
-        query_obspretab = text("""
-            SELECT obs_station_id, obs_post_id, obs_post_name,
-                ST_Distance_Sphere(POINT(:lon, :lat), POINT(obs_lon, obs_lat)) AS distance
-            FROM TidalObservations
-            WHERE obs_object LIKE '%조수간만%'
-                AND obs_object NOT LIKE '%없음%'
-            ORDER BY distance ASC
-            LIMIT 1;
-        """)
-
+        ## ST_Distance_Sphere를 사용하여 DB 내 데이터 비교 후 조건에 맞는 데이터 선정 (1)
         try:
-            #  개 쿼리 실행
-            result_obsrecent = session.execute(query_obsrecent, {'lat': user_lat, 'lon': user_lon}).fetchone()
-            result_obspretab = session.execute(query_obspretab, {'lat': user_lat, 'lon': user_lon}).fetchone()
-
-            if result_obsrecent and result_obspretab:
-                print(f"obs recent : {result_obsrecent}")
-                print(f"obs pretab : {result_obspretab}")
+            with Session() as session:
+                query_obsrecent = session.query(
+                        TidalObservation.obs_station_id,
+                        TidalObservation.obs_post_id,
+                        TidalObservation.obs_post_name,
+                        func.ST_Distance_Sphere(
+                            func.Point(lon, lat), func.Point(TidalObservation.obs_lon, TidalObservation.obs_lat)
+                        ).label('distance')
+                    ).filter(
+                        TidalObservation.obs_object.like('%조위%'),
+                        TidalObservation.obs_object.like('%수온%'),
+                        TidalObservation.obs_object.like('%기온%'),
+                        TidalObservation.obs_object.like('%기압%')
+                    ).order_by('distance').first()
+        except:
+            query_obsrecent = None
+            
+        ## ST_Distance_Sphere를 사용하여 DB 내 데이터 비교 후 조건에 맞는 데이터 선정 (2)
+        try:
+            with Session() as session:
+                query_obspretab = session.query(
+                        TidalObservation.obs_station_id,
+                        TidalObservation.obs_post_id,
+                        TidalObservation.obs_post_name,
+                        func.ST_Distance_Sphere(
+                            func.Point(lon, lat), func.Point(TidalObservation.obs_lon, TidalObservation.obs_lat)
+                        ).label('distance')
+                    ).filter(
+                        TidalObservation.obs_object.like('%조수간만%'),
+                        TidalObservation.obs_object.notlike('%없음%')
+                    ).order_by('distance').first()
+        except:
+            query_obspretab = None
+        
+        # 선정된 데이터 기반 해양 관측소 API 호출    
+        try:
+            if query_obsrecent and query_obspretab:
+                print(f"obs recent : {query_obsrecent}")
+                print(f"obs pretab : {query_obspretab}")
                 # 조위 관측 정보
                 obsrecent_data = {
-                    'obs_station_id': result_obsrecent[0],
-                    'obs_post_id': result_obsrecent[1],
-                    'obs_post_name': result_obsrecent[2],
-                    'distance': result_obsrecent[3] / 1000
+                    'obs_station_id': query_obsrecent[0],
+                    'obs_post_id': query_obsrecent[1],
+                    'obs_post_name': query_obsrecent[2],
+                    'distance': query_obsrecent[3] / 1000
                 }
 
                 # 조수간만 관측소 정보
                 obspretab_data = {
-                    'obs_station_id': result_obspretab[0],
-                    'obs_post_id': result_obspretab[1],
-                    'obs_post_name': result_obspretab[2],
-                    'distance': result_obspretab[3] / 1000
+                    'obs_station_id': query_obspretab[0],
+                    'obs_post_id': query_obspretab[1],
+                    'obs_post_name': query_obspretab[2],
+                    'distance': query_obspretab[3] / 1000
                 }
 
                 # KHOA API 호출
@@ -697,8 +705,8 @@ def set_route(app: Flask, model, device):
                         'obsrecent': obsrecent_data['obs_post_id'],
                         'obspretab': obspretab_data['obs_post_id']
                     })
-                    
-                    # 프론트엔드에 보낼 데이터 구성
+
+                    # 프론트엔드 내 렌더링 데이터 구성
                     closest_data = {
                         'obsrecent': {
                             **obsrecent_data,
@@ -709,46 +717,55 @@ def set_route(app: Flask, model, device):
                             'api_response': api_data['obspretab']
                         }
                     }
-                    return jsonify(closest_data)
+                    return success_response("요청이 성공적으로 처리되었습니다",
+                                            closest_data)
 
-                except requests.exceptions.RequestException as e:
-                    return jsonify({'error': f'API request failed: {e}'}), 500
-
+                except Exception as e:
+                    return error_response('API request failed',
+                                          e,
+                                          500)
             else:
-                return jsonify({'error': 'No tidal observations found'}), 404
-
-        finally:
-            session.close()
+                return error_response("잘못된 요청입니다.",
+                                      'Bad Request', 
+                                      400)
+        except Exception as e:
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                'Internal Server Error', 
+                                500)
             
-    @app.route('/backend/get-weather', methods=['POST', 'GET'])
+    @app.route('/api/weather/land', methods=['POST'])
     def get_weather_api():
         try:
-            # Get and validate coordinates
             lat = request.form.get('lat')
             lon = request.form.get('lon')
             
             if not lat or not lon:
-                return jsonify({'error': 'Latitude and longitude are required'}), 400
-            
-            print(f"lat : {lat}, lon : {lon}")
-                
+                return error_response("잘못된 요청입니다.", 
+                                    'Latitude and longitude are required', 
+                                    400)
             try:
                 lat = float(lat)
                 lon = float(lon)
-            except ValueError:
-                return jsonify({'error': 'Invalid coordinate format'}), 400
-            
+                
+            except Exception as e:
+                return error_response("잘못된 요청입니다",
+                                    'Invalid coordinate format',
+                                    400)
             # Get weather data
             weather_data = get_weather_by_coordinates(lat, lon)
             if not weather_data:
-                return jsonify({'error': 'Failed to fetch weather data'}), 500
+                return error_response('API 호출 진행 중 문제가 발생하였습니다.',
+                                        'Internal Server Error',
+                                        500)
                 
-            return jsonify(weather_data)
+            return success_response("요청을 성공적으로 처리하였습니다.", 
+                                    weather_data)
             
         except Exception as e:
-            logging.error(f"Error in get_weather_api: {str(e)}")
-            return jsonify({'error': 'Internal server error'}), 500
-
+            return error_response("요청 진행 중 문제가 발생하였습니다.",
+                                  "Internal Server Error",
+                                  500)
+                
     @app.route('/api/consent/check', methods=['GET'])
     @token_required
     def check_consent(user_id):
