@@ -90,7 +90,6 @@ def insert_fishing_place_data(json_file_path):
         # 새 데이터 필터링 및 딕셔너리 리스트 변환
         new_data = [
             {
-                "fishing_place_id": entry["fishing_place_id"],
                 "name": entry["name"],
                 "type": entry["type"],
                 "address_road": entry["address_road"],
