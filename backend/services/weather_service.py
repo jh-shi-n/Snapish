@@ -7,8 +7,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 # API 키와 base URL 설정
 KHOA_API_KEY = os.getenv('KHOA_API_KEY')
 OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY')  # API 키를 환경변수로 관리
+OPENWEATHER_API_BASE_URL = 'https://api.openweathermap.org/data/2.5/weather'
 
 def get_sea_weather_by_seapostid(obs_data):
+    """
+    Get Current Sea Weather info by using latitude & longitude
+    """
     current_date = datetime.now().strftime('%Y%m%d')
 
     # 병렬로 처리할 함수
@@ -36,6 +40,7 @@ def get_sea_weather_by_seapostid(obs_data):
 
             filtered_api_data = api_data['result']['data']
             return (DATA_TYPE, filtered_api_data)
+        
         except requests.exceptions.RequestException as e:
             return (DATA_TYPE, {'error': str(e)})
 
@@ -63,10 +68,10 @@ def get_sea_weather_by_seapostid(obs_data):
 
 def get_weather_by_coordinates(lat, lon):
     """
-    Get Current Weather info by using latitude & longitude
+    Get Current land Weather info by using latitude & longitude
     """
     try:
-        # OpenWeather API 파라미터 설정
+        # Call OpenWeather API
         params = {
             "lat": lat,
             "lon": lon,
@@ -75,22 +80,18 @@ def get_weather_by_coordinates(lat, lon):
             "units": "metric"
         }
         
+        response = requests.get(OPENWEATHER_API_BASE_URL, params=params)    
+        response.raise_for_status()
         
-        OPENWEATHER_API_BASE_URL = 'https://api.openweathermap.org/data/2.5/weather'
-        
-        response = requests.get(OPENWEATHER_API_BASE_URL, params=params)
         data = response.json()
+            
+        return process_weather_data(data)
         
-        if response.status_code != 200:
-            raise ValueError(data.get('message', 'Unknown error occurred'))
-        
-        try:
-            return process_weather_data(data)
-        except Exception as e:
-            raise Exception(f"Error Preprocessing weather data: {str(e)}")
-
-    except Exception as e:
+    except requests.exceptions.RequestException as e:  
         raise Exception(f"Error fetching weather data: {str(e)}")
+
+    except (ValueError, KeyError) as e:  
+        raise Exception(f"Error processing weather data: {str(e)}")
     
     
 def get_wind_direction(degrees):
