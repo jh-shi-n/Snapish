@@ -89,8 +89,6 @@ import axios from "@/axios";
 import MapComponent from '@/components/MapComponent.vue'
 import MapLocationDetail from '@/components/MapLocationDetail.vue'
 
-const baseUrl = process.env.VUE_APP_BASE_URL; 
-
 export default {
   components: {
     MapComponent,
@@ -165,39 +163,15 @@ export default {
     // DB에서 위치 정보 가져오기, 주소 고정값 추후 해결
     async fetchLocations() {
       try {
-
-        const response = await axios.post(`${baseUrl}/api/map_fishing_spot`);
+        const baseUrl = process.env.VUE_APP_BASE_URL; 
+        const response = await axios.get(`${baseUrl}/api/spots`);
 
         if (response.data.location) {
-          const locationDict = response.data.location;
-          
-          // 한글/영문 시작 여부를 확인하는 정규식
-          const koreanEnglishRegex = /^[가-힣a-zA-Z]/;
-          
-          this.locations = Object.values(locationDict).sort((a, b) => {
-            const nameA = a.name || '';
-            const nameB = b.name || '';
-            
-            // 한글/영문 시작 여부 확인
-            const isKoreanEnglishA = koreanEnglishRegex.test(nameA);
-            const isKoreanEnglishB = koreanEnglishRegex.test(nameB);
-            
-            // 둘 다 한글/영문으로 시작하면 일반 정렬
-            if (isKoreanEnglishA && isKoreanEnglishB) {
-              return nameA.localeCompare(nameB, 'ko');
-            }
-            
-            // 한글/영문이 아닌 것을 뒤로
-            if (!isKoreanEnglishA && isKoreanEnglishB) return 1;
-            if (isKoreanEnglishA && !isKoreanEnglishB) return -1;
-            
-            // 둘 다 한글/영문이 아니면 일반 정렬
-            return nameA.localeCompare(nameB, 'ko');
-          });
+          this.locations = response.data.location
           
           this.filteredLocations = [...this.locations];
-          console.log(this.locations)
         }
+
       } catch (error) {
         console.error('Error fetching locations:', error);
       }
