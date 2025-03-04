@@ -12,7 +12,13 @@ export async function fetchMulddae(date) {
         },
       }
     );
-    return response.data.data;
+
+    if (response.status === 200) {
+      return response.data.data;
+
+    } else {
+      return null;
+    }
   } catch (error) {
     console.error("Error fetching mulddae data:", error);
     return null;

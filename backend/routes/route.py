@@ -596,7 +596,7 @@ def set_route(app: Flask, model, device):
         
 
     # Endpoint to handle avatar upload
-    @app.route('/profile/avatar', methods=['POST', 'GET'])
+    @app.route('/profile/avatar', methods=['POST'])
     @token_required
     def upload_avatar(user_id):
         if 'avatar' not in request.files:
