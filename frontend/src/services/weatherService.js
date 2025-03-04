@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const baseUrl = process.env.VUE_APP_BASE_URL;
-const apiWeatherBaseUrl = `${baseUrl}/api/get-weather`;
-const apisealocBaseUrl = `${baseUrl}/api/get-seaweather`;
+const apiWeatherBaseUrl = `${baseUrl}/api/weather/land`;
+const apiSeaWeatherBaseUrl = `${baseUrl}/api/weather/sea`;
 
 // Land Weather
 export async function fetchWeatherByCoordinates(lat, lon) {
@@ -32,7 +32,7 @@ export async function fetchWeatherByCoordinates(lat, lon) {
 export async function fetchSeaPostidByCoordinates(lat, lon) {
   try {
     const response = await axios.post(
-      apisealocBaseUrl,
+      apiSeaWeatherBaseUrl,
       new URLSearchParams({ lat: lat, lon: lon }).toString(), 
       {
         headers: {

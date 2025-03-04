@@ -563,7 +563,7 @@ def set_route(app: Flask, model, device):
             logging.error(f"Error in get_detections: {e}")
             return jsonify({'error': 'Internal server error'}), 500
 
-    @app.route('/api/map_fishing_spot', methods=['POST', 'GET'])
+    @app.route('/api/map_fishing_spot', methods=['GET', 'POST'])
     # 추후 Token 관련 데코레이터 ��가할 것
     def map_fishing_spot():
         session = Session()
@@ -632,7 +632,7 @@ def set_route(app: Flask, model, device):
             return jsonify({'error': 'Invalid file type'}), 400
         
     # 요청 지점 위치와 가장 가까운 관측소의 해양 날씨 API 호출
-    @app.route('/api/get-seaweather', methods=['POST'])
+    @app.route('/api/weather/sea', methods=['POST'])
     def get_sea_weather_api():
         lat = request.form.get('lat')
         lon = request.form.get('lon')
@@ -733,7 +733,7 @@ def set_route(app: Flask, model, device):
                                 'Internal Server Error', 
                                 500)
             
-    @app.route('/api/get-weather', methods=['POST'])
+    @app.route('/api/weather/land', methods=['POST'])
     def get_weather_api():
         try:
             lat = request.form.get('lat')
