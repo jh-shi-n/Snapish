@@ -50,8 +50,16 @@ const handleSignup = async () => {
 
         router.push('/login');
     } catch (error) {
-        alert('회원가입 실패: 이미 사용 중인 아이디나 이메일입니다.');
-        console.error('회원가입 오류:', error);
+        if (error.response.status === 409) {
+            alert('회원가입 실패: 이미 사용 중인 아이디나 이메일입니다.');
+            console.error('회원가입 오류:', error);
+        } else if (error.response.status === 400) {
+            alert('회원가입 실패: 입력된 정보가 올바르지 않습니다.');
+            console.error('회원가입 오류:', error);
+        } else {
+            alert('회원가입 실패: 서버 오류');
+            console.error('회원가입 오류:', error);
+        }
     }
 };
 </script>

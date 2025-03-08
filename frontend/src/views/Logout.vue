@@ -14,12 +14,12 @@ const store = useStore();
 
 const logout = () => {
     // 토큰 삭제
-    localStorage.removeItem('token');
+    // localStorage.removeItem('token');
 
     // 스토어 상태 초기화
     store.dispatch('logout');
 
-    // 로그인 페이지로 이동
-    router.push('/login');
+    // 메인 페이지로 이동
+    router.push('/');
 };
 </script>
