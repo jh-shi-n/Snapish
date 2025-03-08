@@ -73,16 +73,20 @@ def set_route(app: Flask, model, device):
         password = data.get('password')
 
         if not username or not email or not password:
-            return jsonify({'message': '모든 필드를 채워주세요.'}), 400
-
+            return error_response("잘못된 요청입니다.",
+                                  "Bad Request : Form error",
+                                  400)
+            
         session = Session()
         existing_user = session.query(User).filter(
-            (User.username == username) | (User.email == email)
-        ).first()
+                            (User.username == username) | (User.email == email)
+                        ).first()
 
         if existing_user:
             session.close()
-            return jsonify({'message': '이미 사용 중인 아이디나 이메일입니다.'}), 400
+            return error_response("충돌",
+                                  "Confilcted : Already existed User",
+                                  409)
 
         hashed_password = generate_password_hash(password)
         new_user = User(
@@ -96,7 +100,9 @@ def set_route(app: Flask, model, device):
         session.commit()
         session.close()
 
-        return jsonify({'message': '회원가입이 성공적으로 완료되었습니다.'}), 201
+        return success_response("요청이 성공적으로 처리되었습니다.",
+                                None,
+                                201)
 
     @app.route('/login', methods=['POST', 'GET'])
     def login():
@@ -105,7 +111,9 @@ def set_route(app: Flask, model, device):
         password = data.get('password')
 
         if not username or not password:
-            return jsonify({'message': 'Username and password are required.'}), 400
+            return error_response("잘못된 요청입니다.",
+                                  "Username and password are required.",
+                                  400)
 
         session = Session()
         try:
@@ -119,21 +127,25 @@ def set_route(app: Flask, model, device):
                 }
                 token = jwt.encode(payload, current_app.config["SECRET_KEY"], algorithm='HS256')
 
-                return jsonify({
-                    'message': '로그인 성공',
-                    'token': token,
-                    'user': {
-                        'user_id': user.user_id,
-                        'username': user.username,
-                        'email': user.email,
-                        # 필요한 사용자 정보 추가
-                    }
-                })
+                success_login_data = {'message': '로그인 성공',
+                                'token': token,
+                                'user': {
+                                    'user_id': user.user_id,
+                                    'username': user.username,
+                                    'email': user.email,
+                                    # 필요한 사용자 정보 추가
+                                }}
+
+                return success_response("요청이 성공적으로 처리되었습니다",
+                                        success_login_data)
             else:
-                return jsonify({'message': '로그인 실패'}), 401
+                return error_response("로그인 실패 : 잘못된 아이디나 비밀번호입니다.",
+                                      "Unauthorized",
+                                      401)
         except Exception as e:
-            logging.error(f"Login error: {e}")
-            return jsonify({'message': 'Internal server error'}), 500
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                'Internal Server Error', 
+                                500)
         finally:
             session.close()
             
@@ -563,9 +575,8 @@ def set_route(app: Flask, model, device):
             logging.error(f"Error in get_detections: {e}")
             return jsonify({'error': 'Internal server error'}), 500
 
-    @app.route('/api/map_fishing_spot', methods=['GET', 'POST'])
-    # 추후 Token 관련 데코레이터 ��가할 것
-    def map_fishing_spot():
+    @app.route('/api/spots', methods=['GET', 'POST'])
+    def fishing_spot_all():
         session = Session()
         fishing_spots = session.query(FishingPlace).all()
         session.close()
@@ -586,15 +597,14 @@ def set_route(app: Flask, model, device):
                 'convenience_facilities' : spot.convenience_facilities, 
             } for spot in fishing_spots]
             
+            return success_response("요청을 성공적으로 처리하였습니다",
+                                    locations)
 
-            return jsonify({
-                'message': 'DB호출 완료',
-                'location': locations
-            })
         except Exception as e:
-            return jsonify({f'message : 호출 실패, {e}'}), 401
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                'Internal Server Error', 
+                                500)
         
-
     # Endpoint to handle avatar upload
     @app.route('/profile/avatar', methods=['POST'])
     @token_required
