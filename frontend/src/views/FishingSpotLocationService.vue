@@ -166,9 +166,8 @@ export default {
         const baseUrl = process.env.VUE_APP_BASE_URL; 
         const response = await axios.get(`${baseUrl}/api/spots`);
 
-        if (response.data.location) {
-          this.locations = response.data.location
-          
+        if (response.status === 200) {
+          this.locations = response.data.data          
           this.filteredLocations = [...this.locations];
         }
 

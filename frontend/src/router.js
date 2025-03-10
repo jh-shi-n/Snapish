@@ -6,7 +6,7 @@ import Home from "./views/Home.vue";
 import Community from "./views/Community.vue";
 import NewPost from "./views/NewPost.vue";
 import EditPost from "./views/EditPost.vue";
-import MapLocationService from "./views/MapLocationService.vue";
+import FishingSpotLocationService from "./views/FishingSpotLocationService.vue";
 import Profile from "./views/Profile.vue";
 import FishResultNormal from "./views/FishResultNormal.vue";
 import FishResultWarning from "./views/FishResultWarning.vue";
@@ -53,9 +53,9 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: "/map-location-service",
-    name: "MapLocationService",
-    component: MapLocationService, // 날씨 상세 정보 컴포넌트
+    path: "/spots",
+    name: "FishingSpotLocationService",
+    component: FishingSpotLocationService, // 날씨 상세 정보 컴포넌트
   },
   {
     path: "/profile",
@@ -138,8 +138,8 @@ router.beforeEach(async (to, from, next) => {
 
 // 라우트 이동 후 스크롤 상태 관리
 router.afterEach((to) => {
-  // `MapLocationService` 라우트로 이동한 경우 스크롤 비활성화
-  if (to.name === 'MapLocationService') {
+  // `FishingSpotLocationService` 라우트로 이동한 경우 스크롤 비활성화
+  if (to.name === 'FishingSpotLocationService') {
     document.body.style.overflow = 'hidden';
   } else {
     // 다른 라우트로 이동한 경우 스크롤 초기화

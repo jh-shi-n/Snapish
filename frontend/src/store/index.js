@@ -356,13 +356,13 @@ export default createStore({
             id: 1,
             name: "물때 정보",
             icon: "/icons/tide.png",
-            route: "/map-location-service"
+            route: "/spots"
           },
           {
             id: 2,
             name: "날씨 정보",
             icon: "/icons/weather.png",
-            route: "/map-location-service"
+            route: "/spots"
           },
           {
             id: 3,
