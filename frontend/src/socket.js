@@ -1,4 +1,4 @@
-const socket = new WebSocket('ws://172.31.8.59:5000/ws');
+const socket = new WebSocket('ws://localhost:5000/ws');
 
 socket.onopen = function(event) {
     console.log("WebSocket is open now.");
