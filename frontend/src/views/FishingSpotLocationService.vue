@@ -47,22 +47,32 @@
             <div>
               <ul class="location-list">
                 <li v-for="(location, index) in filteredLocations" :key="index" class="location-item"
-                  @click="showDetails(location)">
+                  @click="showDetails(location.fishing_place_id)">
                   <h3> 
-                    <strong :class="['type-tag', `type-${location.type}`]">
-                      {{ location.type }}
-                    </strong>
-                    {{ location.name }} 
+                    <span class="location-name">
+                      <strong>
+                        {{ location.name }} 
+                      </strong>
+                    </span>
                   </h3>
-                  <p v-if="location.address_road && location.address_land">
-                    {{ location.address_road }}
-                  </p>
-                  <p v-else-if="location.address_road">
-                    {{ location.address_road }}
-                  </p>
-                  <p v-else-if="location.address_land">
-                    {{ location.address_land }}
-                  </p>
+                  <div class="location-info">
+                    <p>
+                      <strong :class="['type-tag', `type-${location.type}`]">
+                        {{ location.type }}
+                      </strong>
+                      <span class="address">
+                        <span v-if="location.address_road && location.address_land">
+                          {{ location.address_land }}
+                        </span>
+                        <span v-else-if="location.address_road">
+                          {{ location.address_road }}
+                        </span>
+                        <span v-else-if="location.address_land">
+                          {{ location.address_land }}
+                        </span>
+                      </span>
+                    </p>
+                  </div>
                 </li>
               </ul>
             </div>
@@ -72,9 +82,9 @@
               :class="{ visible: isDetailsVisible }" 
               @click.self="hideDetails"
               :style="{ overflow: isDetailsVisible ? 'hidden' : 'auto' }">
-            <MapLocationDetail 
-              v-if="isDetailsVisible" 
-              :location="selectedLocation" 
+            <FishingSpotLocationDetail 
+              v-if="isDetailsVisible"
+              :id= "selectedLocation"
               @close="hideDetails" 
             />
           </div>
@@ -85,14 +95,14 @@
 </template>
 
 <script>
-import axios from "@/axios";
 import MapComponent from '@/components/MapComponent.vue'
-import MapLocationDetail from '@/components/MapLocationDetail.vue'
+import FishingSpotLocationDetail from '@/components/FishingSpotLocationDetail.vue'
+import { fetchFishingSpotAll} from "../services/fishingspotService";
 
 export default {
   components: {
     MapComponent,
-    MapLocationDetail,
+    FishingSpotLocationDetail,
   },
   data() {
     return {
@@ -163,11 +173,10 @@ export default {
     // DB에서 위치 정보 가져오기, 주소 고정값 추후 해결
     async fetchLocations() {
       try {
-        const baseUrl = process.env.VUE_APP_BASE_URL; 
-        const response = await axios.get(`${baseUrl}/api/spots`);
+        const response = await fetchFishingSpotAll();
 
-        if (response.status === 200) {
-          this.locations = response.data.data          
+        if (response !== null){
+          this.locations = response         
           this.filteredLocations = [...this.locations];
         }
 
@@ -252,6 +261,27 @@ export default {
   border-bottom: 1px solid #ccc;
   padding-bottom: 10px;
   margin-bottom: 10px;
+}
+
+.location-name strong{
+  font-size: 1.075em; /* location.name 글자 크기 2px 키움 (기본값보다 2px 더 크게) */
+  margin-bottom: 1.25em;
+}
+
+.location-info {
+  display: inline-block;
+}
+
+.type-tag {
+  margin-right: 5px;  /* type과 주소 사이의 간격을 조정 */
+  display: inline-block; /* type 태그와 주소를 같은 라인에 배치 */
+  vertical-align: middle; /* type 태그와 주소가 정렬되게 세로 정렬 */
+}
+
+.address {
+  font-size: 0.9em;  /* 주소의 글자 크기 약간 작게 */
+  display: inline-block; /* 주소를 type 태그와 같은 라인에 배치 */
+  vertical-align: middle; /* type 태그 내 글자와 정렬되게 세로 정렬 */
 }
 
 .slide-up-panel {
