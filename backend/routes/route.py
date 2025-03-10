@@ -575,7 +575,7 @@ def set_route(app: Flask, model, device):
             logging.error(f"Error in get_detections: {e}")
             return jsonify({'error': 'Internal server error'}), 500
 
-    @app.route('/api/spots', methods=['GET', 'POST'])
+    @app.route('/api/spots', methods=['GET'])
     def fishing_spot_all():
         session = Session()
         fishing_spots = session.query(FishingPlace).all()
@@ -588,13 +588,8 @@ def set_route(app: Flask, model, device):
                 'type': spot.type,
                 'latitude': spot.latitude,
                 'longitude': spot.longitude,
-                'address_road': spot.address_road,
-                'address_land': spot.address_land,
-                'phone_number': spot.phone_number,
-                'main_fish_species': spot.main_fish_species,
-                'usage_fee': spot.usage_fee,
-                'safety_facilities': spot.safety_facilities,
-                'convenience_facilities' : spot.convenience_facilities, 
+                'address_road': " ".join(spot.address_road.split()[:3]),
+                'address_land': " ".join(spot.address_land.split()[:3]),
             } for spot in fishing_spots]
             
             return success_response("요청을 성공적으로 처리하였습니다",
@@ -604,6 +599,45 @@ def set_route(app: Flask, model, device):
             return error_response("요청 진행 중 오류가 발생하였습니다.",
                                 'Internal Server Error', 
                                 500)
+            
+    @app.route('/api/spots/<int:spot_id>', methods=['GET'])
+    def fishing_spot_by_id(spot_id):
+        try:
+            if not spot_id:
+                return error_response("id 파라미터가 제공되지 않았습니다.", 
+                                      'Bad Request', 
+                                      400)
+
+            with Session() as session:
+                spot = session.query(FishingPlace).filter(FishingPlace.fishing_place_id == spot_id).first()
+                
+            if spot:
+                location = {
+                    'fishing_place_id': spot.fishing_place_id,
+                    'name': spot.name,
+                    'type': spot.type,
+                    'latitude': spot.latitude,
+                    'longitude': spot.longitude,
+                    'address_road': spot.address_road,
+                    'address_land': spot.address_land,
+                    'phone_number': spot.phone_number,
+                    'main_fish_species': spot.main_fish_species,
+                    'usage_fee': spot.usage_fee,
+                    'safety_facilities': spot.safety_facilities,
+                    'convenience_facilities' : spot.convenience_facilities, 
+                }
+                return success_response("요청을 성공적으로 처리하였습니다", 
+                                        location)
+            else:
+                return error_response("해당 ID에 맞는 낚시터를 찾을 수 없습니다.", 
+                                      'Not Found', 
+                                      404)
+
+        except Exception as e:
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                'Internal Server Error',
+                                500)
+
         
     # Endpoint to handle avatar upload
     @app.route('/profile/avatar', methods=['POST'])
@@ -822,13 +856,13 @@ def set_route(app: Flask, model, device):
                 "id": 1,
                 "name": "물때 정보",
                 "icon": "/icons/tide.png",
-                "route": "/map-location-service"
+                "route": "/spots"
             },
             {
                 "id": 2,
                 "name": "날씨 정보",
                 "icon": "/icons/weather.png",
-                "route": "/map-location-service"
+                "route": "/spots"
             },
             {
                 "id": 3,
