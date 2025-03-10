@@ -17,7 +17,7 @@ from decorator import token_required
 from services.weather_service import get_sea_weather_by_seapostid, get_weather_by_coordinates
 from services.lunar_tide_cycle_info import get_tide_cycle, calculate_moon_phase
 from services.openai_assistant import assistant_talk_request, assistant_talk_get
-from utils import allowed_file, optimize_image, get_full_url, success_response, error_response
+from utils import allowed_file, optimize_image, get_full_url, success_response, error_response, custom_sort_key
 
 from models.model import (
     Session,
@@ -73,16 +73,20 @@ def set_route(app: Flask, model, device):
         password = data.get('password')
 
         if not username or not email or not password:
-            return jsonify({'message': '모든 필드를 채워주세요.'}), 400
-
+            return error_response("잘못된 요청입니다.",
+                                  "Bad Request : Form error",
+                                  400)
+            
         session = Session()
         existing_user = session.query(User).filter(
-            (User.username == username) | (User.email == email)
-        ).first()
+                            (User.username == username) | (User.email == email)
+                        ).first()
 
         if existing_user:
             session.close()
-            return jsonify({'message': '이미 사용 중인 아이디나 이메일입니다.'}), 400
+            return error_response("충돌",
+                                  "Confilcted : Already existed User",
+                                  409)
 
         hashed_password = generate_password_hash(password)
         new_user = User(
@@ -96,7 +100,9 @@ def set_route(app: Flask, model, device):
         session.commit()
         session.close()
 
-        return jsonify({'message': '회원가입이 성공적으로 완료되었습니다.'}), 201
+        return success_response("요청이 성공적으로 처리되었습니다.",
+                                None,
+                                201)
 
     @app.route('/login', methods=['POST', 'GET'])
     def login():
@@ -105,7 +111,9 @@ def set_route(app: Flask, model, device):
         password = data.get('password')
 
         if not username or not password:
-            return jsonify({'message': 'Username and password are required.'}), 400
+            return error_response("잘못된 요청입니다.",
+                                  "Username and password are required.",
+                                  400)
 
         session = Session()
         try:
@@ -119,21 +127,25 @@ def set_route(app: Flask, model, device):
                 }
                 token = jwt.encode(payload, current_app.config["SECRET_KEY"], algorithm='HS256')
 
-                return jsonify({
-                    'message': '로그인 성공',
-                    'token': token,
-                    'user': {
-                        'user_id': user.user_id,
-                        'username': user.username,
-                        'email': user.email,
-                        # 필요한 사용자 정보 추가
-                    }
-                })
+                success_login_data = {'message': '로그인 성공',
+                                'token': token,
+                                'user': {
+                                    'user_id': user.user_id,
+                                    'username': user.username,
+                                    'email': user.email,
+                                    # 필요한 사용자 정보 추가
+                                }}
+
+                return success_response("요청이 성공적으로 처리되었습니다",
+                                        success_login_data)
             else:
-                return jsonify({'message': '로그인 실패'}), 401
+                return error_response("로그인 실패 : 잘못된 아이디나 비밀번호입니다.",
+                                      "Unauthorized",
+                                      401)
         except Exception as e:
-            logging.error(f"Login error: {e}")
-            return jsonify({'message': 'Internal server error'}), 500
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                'Internal Server Error', 
+                                500)
         finally:
             session.close()
             
@@ -563,9 +575,8 @@ def set_route(app: Flask, model, device):
             logging.error(f"Error in get_detections: {e}")
             return jsonify({'error': 'Internal server error'}), 500
 
-    @app.route('/api/map_fishing_spot', methods=['GET', 'POST'])
-    # 추후 Token 관련 데코레이터 ��가할 것
-    def map_fishing_spot():
+    @app.route('/api/spots', methods=['GET'])
+    def fishing_spot_all():
         session = Session()
         fishing_spots = session.query(FishingPlace).all()
         session.close()
@@ -577,24 +588,59 @@ def set_route(app: Flask, model, device):
                 'type': spot.type,
                 'latitude': spot.latitude,
                 'longitude': spot.longitude,
-                'address_road': spot.address_road,
-                'address_land': spot.address_land,
-                'phone_number': spot.phone_number,
-                'main_fish_species': spot.main_fish_species,
-                'usage_fee': spot.usage_fee,
-                'safety_facilities': spot.safety_facilities,
-                'convenience_facilities' : spot.convenience_facilities, 
+                'address_road': " ".join(spot.address_road.split()[:3]),
+                'address_land': " ".join(spot.address_land.split()[:3]),
             } for spot in fishing_spots]
             
+            locations = sorted(locations, key=custom_sort_key)
+            
+            return success_response("요청을 성공적으로 처리하였습니다",
+                                    locations)
 
-            return jsonify({
-                'message': 'DB호출 완료',
-                'location': locations
-            })
         except Exception as e:
-            return jsonify({f'message : 호출 실패, {e}'}), 401
-        
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                'Internal Server Error', 
+                                500)
+            
+    @app.route('/api/spots/<int:spot_id>', methods=['GET'])
+    def fishing_spot_by_id(spot_id):
+        try:
+            if not spot_id:
+                return error_response("id 파라미터가 제공되지 않았습니다.", 
+                                      'Bad Request', 
+                                      400)
 
+            with Session() as session:
+                spot = session.query(FishingPlace).filter(FishingPlace.fishing_place_id == spot_id).first()
+                
+            if spot:
+                location = {
+                    'fishing_place_id': spot.fishing_place_id,
+                    'name': spot.name,
+                    'type': spot.type,
+                    'latitude': spot.latitude,
+                    'longitude': spot.longitude,
+                    'address_road': spot.address_road,
+                    'address_land': spot.address_land,
+                    'phone_number': spot.phone_number,
+                    'main_fish_species': spot.main_fish_species,
+                    'usage_fee': spot.usage_fee,
+                    'safety_facilities': spot.safety_facilities,
+                    'convenience_facilities' : spot.convenience_facilities, 
+                }
+                return success_response("요청을 성공적으로 처리하였습니다", 
+                                        location)
+            else:
+                return error_response("해당 ID에 맞는 낚시터를 찾을 수 없습니다.", 
+                                      'Not Found', 
+                                      404)
+
+        except Exception as e:
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                'Internal Server Error',
+                                500)
+
+        
     # Endpoint to handle avatar upload
     @app.route('/profile/avatar', methods=['POST'])
     @token_required
@@ -812,13 +858,13 @@ def set_route(app: Flask, model, device):
                 "id": 1,
                 "name": "물때 정보",
                 "icon": "/icons/tide.png",
-                "route": "/map-location-service"
+                "route": "/spots"
             },
             {
                 "id": 2,
                 "name": "날씨 정보",
                 "icon": "/icons/weather.png",
-                "route": "/map-location-service"
+                "route": "/spots"
             },
             {
                 "id": 3,

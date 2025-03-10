@@ -7,7 +7,7 @@
     <div class="relative w-full bg-white h-full overflow-y-auto content-scroll">
       <!-- 헤더 영역 -->
       <header class="sticky top-0 bg-white z-10 px-4 py-3 border-b">
-        <div class="flex justify-between items-center">
+        <div v-if="location" class="flex justify-between items-center">
           <h1 class="text-xl font-bold">{{ location.name }}</h1>
           <button class="close-btn" @click="$emit('close')">
             <XIcon class="w-6 h-6" />
@@ -18,7 +18,7 @@
       <!-- 기본 정보 영역 -->
       <section class="info-section p-4">
         <!-- 위치 정보 토글 -->
-        <div class="location-toggle">
+        <div v-if="location" class="location-toggle">
           <button @click="toggleLocation" 
                   class="w-full py-3 flex justify-between items-center">
             <div>
@@ -33,7 +33,7 @@
             <ChevronDownIcon :class="['w-5 h-5 transition-transform', { 'rotate-180': isLocationOpen }]" />
           </button>
           
-          <div class="facility-content mt-2">
+          <div v-if="location" class="facility-content mt-2">
             <div v-if="mapLoaded">
               <MapComponent 
                 v-show="isLocationOpen" 
@@ -45,7 +45,7 @@
         </div>
 
         <!-- 시설 정보 토글 -->
-        <div class="facility-toggle mt-4 border-t">
+        <div v-if="location" class="facility-toggle mt-4 border-t">
           <button @click="toggleFacilities" 
                   class="w-full py-3 flex justify-between items-center">
             <h3 class="flex items-center gap-2 text-lg font-semibold">
@@ -60,7 +60,7 @@
               출처 : LOCALDATA (2024.12월 기준) 
             </p>
             <!-- 이용료 섹션 -->
-            <div class="facility-section" v-if="location.usage_fee">
+            <div class="facility-section" >
               <h3 class="flex items-center gap-2 text-lg font-semibold">
                 <WalletIcon class="w-5 h-5" />
                 이용료
@@ -71,7 +71,7 @@
             </div>
 
             <!-- 주요어종 섹션 -->
-            <div class="facility-section" v-if="location.main_fish_species">
+            <div class="facility-section" >
               <h3 class="flex items-center gap-2 text-lg font-semibold">
                 <FishIcon class="w-5 h-5" />
                 주요 어종
@@ -86,7 +86,7 @@
             </div>
 
             <!-- 안전시설 섹션 -->
-            <div class="facility-section" v-if="location.safety_facilities">
+            <div class="facility-section" >
               <h3 class="flex items-center gap-2 text-lg font-semibold">
                 <ShieldCheckIcon class="w-5 h-5" />
                 안전 시설
@@ -101,7 +101,7 @@
             </div>
 
             <!-- 편의시설 섹션 -->
-            <div class="facility-section" v-if="location.convenience_facilities">
+            <div class="facility-section" >
               <h3 class="flex items-center gap-2 text-lg font-semibold">
                 <Coffee class="w-5 h-5" />
                 편의시설
@@ -130,13 +130,13 @@
           
           <div v-if="isWeatherOpen">
             <div v-if="weatherLoaded">
-              <MapLocationWeatherLand 
+              <FishingSpotLocationWeatherLand 
                 :spotlocation="[location.latitude, location.longitude]"
                 v-model:weatherData="weatherData.land"
               />
             </div>
             <div v-if="weatherLoaded && location.type === '바다'">
-              <MapLocationWeatherSea 
+              <FishingSpotLocationWeatherSea 
                 :spotlocation="[location.latitude, location.longitude]"
                 v-model:weatherData="weatherData.sea"
                 @update:observationInfo="updateObservationInfo"
@@ -173,7 +173,6 @@
 </template>
 
 <script>
-// import { ref } from 'vue';
 import { 
   XIcon, 
   MapPinIcon, 
@@ -184,15 +183,17 @@ import {
   CloudIcon,
   ChevronDownIcon
 } from 'lucide-vue-next';
-import MapLocationWeatherSea from './MapLocationWeatherSea.vue';
-import MapLocationWeatherLand from './MapLocationWeatherLand.vue';
+import FishingSpotLocationWeatherSea from './FishingSpotLocationWeatherSea.vue';
+import FishingSpotLocationWeatherLand from './FishingSpotLocationWeatherLand.vue';
 import MapComponent from './MapComponent.vue';
+import { fetchFishingSpotDetail } from '../services/fishingspotService';
+// import { fetchFishingSpotDetail } from "../services/fishingspotService";
 
 export default {
-  name: 'MapLocationDetail',
+  name: 'FishingSpotLocationDetail',
   components: {
-    MapLocationWeatherSea,
-    MapLocationWeatherLand,
+    FishingSpotLocationWeatherSea,
+    FishingSpotLocationWeatherLand,
     MapComponent,
     XIcon,
     MapPinIcon,
@@ -204,8 +205,8 @@ export default {
     ChevronDownIcon
   },
   props: {
-    location: {
-      type: Object,
+    id: {
+      type: Number,
       required: true
     }
   },
@@ -220,7 +221,15 @@ export default {
       },
       weatherLoaded: false,
       mapLoaded: false,
-      observationInfo: null
+      observationInfo: null,
+      location: null,
+    }
+  },  
+  async mounted() {
+    try {
+      this.location = await fetchFishingSpotDetail(this.id);
+    } catch (error) {
+      console.error('Error while fetching location:', error);
     }
   },
   methods: {
