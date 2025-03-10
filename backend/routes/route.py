@@ -111,8 +111,8 @@ def set_route(app: Flask, model, device):
         password = data.get('password')
 
         if not username or not password:
-            return error_response("잘못된 요청입니다.",
-                                  "Username and password are required.",
+            return error_response("정보가 정상적으로 입력되지 않았습니다.",
+                                  "Bad Request",
                                   400)
 
         session = Session()
@@ -1334,17 +1334,6 @@ def set_route(app: Flask, model, device):
         finally:
             session.close()
             
-    # Flask 모든 응답에 대해 후처리 수행하도록 설정
-    @app.after_request
-    def add_header(response):
-        """
-        Cache setting for upload directory (1 year)
-        """
-        if request.path.startswith('/uploads/'):
-            response.cache_control.max_age = 31536000  
-            response.cache_control.public = True
-        return response
-    
     # Flask 모든 응답에 대해 후처리 수행하도록 설정
     @app.after_request
     def add_header(response):

@@ -97,7 +97,7 @@
 <script>
 import MapComponent from '@/components/MapComponent.vue'
 import FishingSpotLocationDetail from '@/components/FishingSpotLocationDetail.vue'
-import { fetchFishingSpotAll} from "../services/fishingspotService";
+import { fetchFishingSpotAll } from "../services/fishingspotService";
 
 export default {
   components: {
