@@ -17,7 +17,7 @@ from decorator import token_required
 from services.weather_service import get_sea_weather_by_seapostid, get_weather_by_coordinates
 from services.lunar_tide_cycle_info import get_tide_cycle, calculate_moon_phase
 from services.openai_assistant import assistant_talk_request, assistant_talk_get
-from utils import allowed_file, optimize_image, get_full_url, success_response, error_response
+from utils import allowed_file, optimize_image, get_full_url, success_response, error_response, custom_sort_key
 
 from models.model import (
     Session,
@@ -591,6 +591,8 @@ def set_route(app: Flask, model, device):
                 'address_road': " ".join(spot.address_road.split()[:3]),
                 'address_land': " ".join(spot.address_land.split()[:3]),
             } for spot in fishing_spots]
+            
+            locations = sorted(locations, key=custom_sort_key)
             
             return success_response("요청을 성공적으로 처리하였습니다",
                                     locations)
