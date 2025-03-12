@@ -60,7 +60,7 @@ def set_route(app: Flask, model, device):
                                     json_result)
 
         except Exception as e:
-            return error_response("서버 오류 발생",
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
                                   "Internal server error",
                                   500)
         
@@ -151,8 +151,8 @@ def set_route(app: Flask, model, device):
             
 
 
-    # predict 라트 수정
-    @app.route('/backend/predict', methods=['POST', 'GET'])
+    # predict API
+    @app.route('/predict', methods=['POST'])
     def predict():
         try:
             if 'image' in request.files:
@@ -301,8 +301,11 @@ def set_route(app: Flask, model, device):
             logging.error(f"Error processing image: {e}")
             return jsonify({'error': '이미지 처리 중 오류가 발생했습니다.'}), 500
         
-    @app.route('/backend/chat/<thread_id>/<run_id>', methods=['GET', 'POST'])
-    def assistant_talk_result(thread_id, run_id):
+    @app.route('/predict/chat', methods=['POST'])
+    def assistant_talk_result():
+        thread_id = request.form.get('thread_id')
+        run_id = request.form.get('run_id')
+        
         try:
             formatted_text = assistant_talk_get(thread_id, run_id)
             
