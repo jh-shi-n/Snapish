@@ -215,9 +215,9 @@ import { ref, onMounted, computed, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ChevronLeftIcon, AlertTriangleIcon, LogOutIcon, InfoIcon, Share2Icon, Edit, X } from 'lucide-vue-next';
 import { useStore } from 'vuex';
+import { fetchchatgptAssist } from "../services/predictService.js"
 import ConsentModal from '../components/ConsentModal.vue';
 import EditFishModal from '../components/EditFishModal.vue';
-import axios from 'axios';
 import html2canvas from 'html2canvas';
 
 const store = useStore();
@@ -296,7 +296,7 @@ const fetchAssistantResponse = async (assistantRequestId = null) => {
     isDescriptionLoading.value = true;
     try {
       const [thread_id, run_id] = currentAssistantId;
-      const response = await axios.get(`${baseUrl}/backend/chat/${thread_id}/${run_id}`);
+      const response = await fetchchatgptAssist(thread_id, run_id);
       console.log('ChatGPT Response:', response.data);
       if (response.data.status === 'Success') {
         fishDescription.value = response.data.data || '잠시만 기다려 주세요';
