@@ -37,9 +37,9 @@
 
 <script setup>
 import { ref , computed } from 'vue';
-import axios from '../axios'; // Ensure this is the correct path to your Axios instance
 import { useRouter } from 'vue-router';
 import store from '../store'; // Vuex store 임포트
+import { requestPredict } from '../services/predictService';
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -80,28 +80,40 @@ const closeActionSheet = () => {
 
 // 옵션 클릭 시 실행되는 함수
 const handleOption = (action) => {
-    console.log('Option selected:', action); // 로그 추가
-    closeActionSheet();
+    const token = localStorage.getItem("token"); // 토큰 확인
+    if (!token) {
+        console.log('Login Required');
+        alert("로그인이 필요합니다.");
+        closeActionSheet();
+        router.push("/login");
+        return;
 
-    if (action === 'camera') {
-        if (cameraInput.value) {
-            cameraInput.value.click();
-        } else {
-            console.error('cameraInput is not available');
-        }
-    } else if (action === 'gallery') {
-        if (galleryInput.value) {
-            galleryInput.value.click();
-        } else {
-            console.error('galleryInput is not available');
-        }
-    } else if (action === 'file') {
-        if (fileInput.value) {
-            fileInput.value.click();
-        } else {
-            console.error('fileInput is not available');
+    } else {
+        console.log('Option selected:', action); // 로그 추가
+        closeActionSheet();
+
+        if (action === 'camera') {
+            if (cameraInput.value) {
+                cameraInput.value.click();
+            } else {
+                console.error('cameraInput is not available');
+            }
+        } else if (action === 'gallery') {
+            if (galleryInput.value) {
+                galleryInput.value.click();
+            } else {
+                console.error('galleryInput is not available');
+            }
+        } else if (action === 'file') {
+            if (fileInput.value) {
+                fileInput.value.click();
+            } else {
+                console.error('fileInput is not available');
+            }
         }
     }
+
+    
 };
 
 // 파일 선택 시 실행되는 함수
@@ -118,50 +130,16 @@ const onFileChange = async (event) => {
             // 전역 로딩 상태 활성화
             store.dispatch('setGlobalLoading', true);
 
+            console.log('before token')
             const token = localStorage.getItem('token');
             if (token) {
                 const formData = new FormData();
                 formData.append('image', file);
+                const response = await requestPredict(formData, token);
+                console.log("before handle", response)
+                await handlePredictResponse(response);
 
-                const response = await axios.post('/backend/predict', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    withCredentials: true,
-                });
-                await handlePredictResponse(response.data);
-            } else {
-                const reader = new FileReader();
-                reader.onload = async () => {
-                    const image_base64 = reader.result.split(',')[1];
-                    try {
-                        const response = await axios.post('/backend/predict', {
-                            image_base64,
-                        });
-                        await handlePredictResponse(response.data);
-                    } catch (error) {
-                        console.error('Error during Axios POST:', error);
-                        let errorType = 'analyze_failed';
-                        let errorMessage = error.message;
-
-                        // 백엔드 에러 응답 처리
-                        if (error.response?.data) {
-                            errorType = error.response.data.error || errorType;
-                            errorMessage = error.response.data.message || errorMessage;
-                        }
-
-                        await router.push({
-                            name: 'FishResultError',
-                            query: {
-                                errorType: errorType,
-                                message: errorMessage
-                            }
-                        });
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
+            } 
         } catch (error) {
             console.error('Error during Axios POST:', error);
             let errorType = 'analyze_failed';
@@ -249,6 +227,7 @@ const handlePredictResponse = async (data) => {
         const isResultPage = router.currentRoute.value.name?.includes('FishResult');
         const navigationMethod = isResultPage ? router.replace : router.push;
 
+        // to-do : apply error status
         if (store.state.isAuthenticated) {
             await store.dispatch('fetchCatches');
             await navigationMethod({
@@ -258,19 +237,9 @@ const handlePredictResponse = async (data) => {
                     _timestamp: Date.now()
                 }
             });
-        } else {
-            const filteredQueryParams = { ...queryParams };
-            delete filteredQueryParams.catchId;
-            await navigationMethod({
-                name: routeName,
-                query: {
-                    ...filteredQueryParams,
-                    _timestamp: Date.now()
-                }
-            });
-        }
+        } 
     } else {
-        alert('알 수 없는 물고기입니다.');
+        alert('요청 진행 중 오류가 발생하였습니다.');
     }
 };
 </script>
