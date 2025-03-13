@@ -153,47 +153,28 @@ def set_route(app: Flask, model, device):
 
     # predict API
     @app.route('/predict', methods=['POST'])
-    def predict():
+    @token_required
+    def predict(user_id):
         try:
             if 'image' in request.files:
                 file = request.files['image']
                 # 파일 이름이 비어있는지 먼저 확인
                 if file.filename == '':
-                    return jsonify({
-                        'error': 'invalid_file_name',
-                        'message': '파일이 선택되지 않았습니다.'
-                    }), 400
-                    
+                    return error_response("파일이 선택되지 않았습니다.",
+                                          "Method Not Allowed",
+                                          405)   
                 # 파일 타입 검증
                 if not allowed_file(file.filename):
-                    return jsonify({
-                        'error': 'invalid_file_type',
-                        'message': '지원하지 않는 파일 형식입니다.'
-                    }), 400
-                    
+                    return error_response("지원하지 않는 파일 형식입니다.",
+                                          "Unsupported Media Typed",
+                                          415)               
                 try:
                     img = Image.open(file.stream).convert('RGB')
+                    
                 except Exception as e:
-                    return jsonify({
-                        'error': 'invalid_file_open',
-                        'message': '이미지를 처리할 수 없습니다.'
-                    }), 400
-            else:
-                try:
-                    data = request.get_json()
-                    image_base64 = data.get('image_base64')
-                    if not image_base64:
-                        return jsonify({                   
-                                        'error': 'invalid_image_formatting_error',
-                                        'message': '업로드 이미지를 변환하는 중 오류가 발생했습니다.'
-                                        }), 400
-                    image_data = base64.b64decode(image_base64)
-                    img = Image.open(io.BytesIO(image_data)).convert('RGB')
-                except Exception as e:
-                    ({                   
-                        'error': 'invalid_image_open',
-                        'message': '업로드 이미지를 열지 못했습니다.'
-                        }), 400
+                    return error_response("요청 파일을 처리할 수 없습니다",
+                                          "Bad Request",
+                                          400)
 
             # 이미지 최적화
             optimized_buffer = optimize_image(img)
@@ -225,6 +206,7 @@ def set_route(app: Flask, model, device):
                     print(f"assistant_request_id 호출 실패 : {e}")
                     assistant_request_id = None
 
+            # TO-DO : Change Error status
             # 감지 결과가 없거나 모든 결과의 정확도가 낮은 경우
             if not detections:
                 return jsonify({
@@ -285,18 +267,21 @@ def set_route(app: Flask, model, device):
                         'assistant_request_id': assistant_request_id
                     }
             else:
-                # Do not save the image to disk or database
-                buffered = io.BytesIO()
-                img.save(buffered, format='JPEG')
-                img_str = base64.b64encode(buffered.getvalue()).decode()
-                response_data = {
-                    'detections': detections,
-                    'image_base64': img_str,
-                    'assistant_request_id': assistant_request_id
-                }
+                pass
+                # # Do not save the image to disk or database
+                # buffered = io.BytesIO()
+                # img.save(buffered, format='JPEG')
+                # img_str = base64.b64encode(buffered.getvalue()).decode()
+                # response_data = {
+                #     'detections': detections,
+                #     'image_base64': img_str,
+                #     'assistant_request_id': assistant_request_id
+                # }
 
             session.close()
-            return jsonify(response_data)
+            
+            return success_response("요청이 성공적으로 처리되었습니다",
+                                    response_data)
         except Exception as e:
             logging.error(f"Error processing image: {e}")
             return jsonify({'error': '이미지 처리 중 오류가 발생했습니다.'}), 500
@@ -306,30 +291,29 @@ def set_route(app: Flask, model, device):
         thread_id = request.form.get('thread_id')
         run_id = request.form.get('run_id')
         
+        print(thread_id, run_id)
+        
         try:
             formatted_text = assistant_talk_get(thread_id, run_id)
             
-            if not formatted_text:
-                return jsonify({            
-                    'data': None,
-                    'status': 'No response from assistant'
-                }), 404
-                
-            return jsonify({
-                'data': formatted_text,
-                'status': 'Success'
-            })
+            print(formatted_text)
             
+            if not formatted_text:
+                return error_response("생성된 답변이 없습니다",
+                                      "Not Found",
+                                      404)
+                
+            return success_response("요청을 성공적으로 처리하였습니다",
+                                    formatted_text)
+                        
         except TimeoutError:
-            return jsonify({
-                'data': None,
-                'status': 'Assistant response timed out'
-            }), 408
+            return error_response("요청 시간이 초과되었습니다.",
+                                "TimeOut",
+                                408)
         except Exception as e:
-            return jsonify({
-                'data': None,
-                'status': f'Internal server error : {e}'
-            }), 500
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                  "Internal server error",
+                                  500)
 
     @app.route('/profile', methods=['GET', 'PUT'])
     @token_required
@@ -558,7 +542,7 @@ def set_route(app: Flask, model, device):
         response.headers['Vary'] = 'Accept-Encoding'
         return response
 
-    @app.route('/backend/get-detections', methods=['GET', 'POST'])
+    @app.route('/predict/save', methods=['GET', 'POST'])
     @token_required
     def get_detections(user_id):
         imageUrl = request.args.get('imageUrl')
