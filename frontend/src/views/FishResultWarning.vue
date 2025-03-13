@@ -297,13 +297,13 @@ const fetchAssistantResponse = async (assistantRequestId = null) => {
     try {
       const [thread_id, run_id] = currentAssistantId;
       const response = await fetchchatgptAssist(thread_id, run_id);
-      console.log('ChatGPT Response:', response.data);
-      if (response.data.status === 'Success') {
-        fishDescription.value = response.data.data || '잠시만 기다려 주세요';
-      } else {
-        console.error('Error in ChatGPT response:', response.data.status);
-        fishDescription.value = '현재 서비스를 이용할 수 없어요';
-      }
+
+      if (response) {
+      fishDescription.value = response || '잠시만 기다려 주세요';
+    } else {
+      console.error('Error in ChatGPT response:', response.status);
+      fishDescription.value = '현재 서비스를 이용할 수 없어요';
+    }
     } catch (error) {
       console.error('Error fetching ChatGPT response:', error);
       fishDescription.value = '현재 서비스를 이용할 수 없어요';

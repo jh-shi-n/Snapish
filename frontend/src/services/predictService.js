@@ -19,7 +19,9 @@ export async function requestPredict(formdata, token=null) {
         }
       );
   
-      if (response.data.status === 200) {
+      console.log(response)
+
+      if (response.status === 200) {
         return response.data.data;
       } else {
         return null;
@@ -43,8 +45,12 @@ export async function fetchchatgptAssist(thread_id, run_id) {
       }
     );
 
-    if (response.data.status === 200) {
-      return response.data.data;
+    if (response.status === 200) {
+      if (response.data) {
+        return response.data.data;
+      } else {
+        return null
+      }
 
     } else {
       return null
