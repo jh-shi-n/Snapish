@@ -209,7 +209,7 @@ def set_route(app: Flask, model, device):
 
             else:
                 if not results[0].boxes.cls.size(0) :
-                    return error_response("물고기를 정확하게 감지할 수 없습니다.",
+                    return error_response("물고기를 감지할 수 없습니다.",
                                           "Unprocessable Entity",
                                           422)
                 else:

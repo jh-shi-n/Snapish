@@ -136,19 +136,25 @@ const onFileChange = async (event) => {
                 const formData = new FormData();
                 formData.append('image', file);
                 const response = await requestPredict(formData, token);
-                console.log("before handle", response)
                 await handlePredictResponse(response);
-
             } 
         } catch (error) {
             console.error('Error during Axios POST:', error);
-            let errorType = 'analyze_failed';
-            let errorMessage = error.message;
+            let errorType = null;
+            let errorMessage = null;
+
+            console.log(error)
 
             // 백엔드 에러 응답 처리
             if (error.response?.data) {
-                errorType = error.response.data.error || errorType;
-                errorMessage = error.response.data.message || errorMessage;
+                errorType = error.response.data.error
+                errorMessage = error.response.data.message
+            } else if (error.response === undefined) {
+                errorType = 'server_error';
+                errorMessage = "서버 접속 실패"
+            } else {
+                errorType = "analyze_failed"
+                errorMessage = "요청 진행 중 실패하였습니다."
             }
 
             await router.push({
@@ -168,18 +174,30 @@ const onFileChange = async (event) => {
 };
 
 const handlePredictResponse = async (data) => {
-    // 에러 응답 처리
-    if (data.error === 'detection_failed') {
-        console.log('data.errorType:', data.errorType);
+
+    // 에러 응답 처리 1 - 서버 연결 실패 시,
+    if (data === undefined) {
         await router.push({
             name: 'FishResultError',
             query: {
-                errorType: data.errorType,
-                message: data.message
+                errorType: 'server_error',
+            }
+        });
+    }
+
+    // 에러 응답 처리 2 - 
+    if (data.status !== '202') {
+        console.log('data.errorType:', data.data.error);
+        console.log('data.errorType:', data.status);
+        await router.push({
+            name: 'FishResultError',
+            query: {
+                errorType: data.status,
+                message: data.message,
             }
         });
         return;
-    }
+    } 
 
     const detections = data.detections;
     const imageUrl = data.imageUrl || null;
@@ -239,7 +257,7 @@ const handlePredictResponse = async (data) => {
             });
         } 
     } else {
-        alert('요청 진행 중 오류가 발생하였습니다.');
+        alert('알 수 없는 오류가 발생하였습니다.');
     }
 };
 </script>
