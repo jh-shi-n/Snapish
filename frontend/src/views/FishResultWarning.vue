@@ -299,7 +299,7 @@ const fetchAssistantResponse = async (assistantRequestId = null) => {
       const response = await fetchchatgptAssist(thread_id, run_id);
 
       if (response) {
-      fishDescription.value = response || '잠시만 기다려 주세요';
+      fishDescription.value = response || '생성 중 오류가 발생했어요';
     } else {
       console.error('Error in ChatGPT response:', response.status);
       fishDescription.value = '현재 서비스를 이용할 수 없어요';

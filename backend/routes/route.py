@@ -197,24 +197,27 @@ def set_route(app: Flask, model, device):
                         
             detections.sort(key=lambda x: x['confidence'], reverse=True)
             
+            # 검출 여부에 따라 if-else
             if detections:
+                top_fish = detections[0]['label']
                 try:
-                    top_fish = detections[0]['label']
                     assistant_request_id = assistant_talk_request(f"{top_fish}")
                 
                 except Exception as e:
                     print(f"assistant_request_id 호출 실패 : {e}")
                     assistant_request_id = None
 
-            # TO-DO : Change Error status
-            # 감지 결과가 없거나 모든 결과의 정확도가 낮은 경우
-            if not detections:
-                return jsonify({
-                    'error': 'detection_failed',
-                    'errorType': 'no_detection' if not results[0].boxes.cls.size(0) else 'low_confidence',
-                    'message': '물고기를 감지할 수 없습니다.' if not results[0].boxes.cls.size(0) else '물고기를 정확하게 인식할 수 없습니다.'
-                }), 200  # 프론트엔드 처리를 위해 200 반환
+            else:
+                if not results[0].boxes.cls.size(0) :
+                    return error_response("물고기를 정확하게 감지할 수 없습니다.",
+                                          "Unprocessable Entity",
+                                          422)
+                else:
+                    return error_response("물고기를 감지할 수 없습니다.",
+                                          "No content",
+                                          204)
 
+            # 결과 DB 저장
             session = Session()
             token = request.headers.get('Authorization')
             if token:
@@ -267,7 +270,7 @@ def set_route(app: Flask, model, device):
                         'assistant_request_id': assistant_request_id
                     }
             else:
-                pass
+                raise Exception("토큰이 필요합니다.")
                 # # Do not save the image to disk or database
                 # buffered = io.BytesIO()
                 # img.save(buffered, format='JPEG')
