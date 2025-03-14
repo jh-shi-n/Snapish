@@ -24,13 +24,24 @@ export async function requestPredict(formdata, token=null) {
       if (response.status === 200) {
         return response.data.data;
       } else {
-        return null;
+        console.log("none detect")
       }
     } catch (error) {
-      console.error("Error Predict :", error);
-      return { error: error.message };
+      if (error.response){
+        console.error("Error Predict:", error.response.status);
+
+      if ([422, 204, 405, 415, 400].includes(error.response.status)) { 
+        console.log(`Error Status: ${error.response.status}`);
+        return { status: error.response.status, data: error.response.data };
+      }
+
+      return { status: error.response.status, message: "Unhandled error" };
     }
-}
+      if (error.request) {
+        return error.request
+      }
+    }
+  }
 
 // ChatGPT Assistant Request
 export async function fetchchatgptAssist(thread_id, run_id) {
@@ -46,12 +57,7 @@ export async function fetchchatgptAssist(thread_id, run_id) {
     );
 
     if (response.status === 200) {
-      if (response.data) {
         return response.data.data;
-      } else {
-        return null
-      }
-
     } else {
       return null
     }
