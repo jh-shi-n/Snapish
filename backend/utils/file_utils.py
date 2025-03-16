@@ -28,4 +28,5 @@ def optimize_image(image, max_size=1024):
     buffer = BytesIO()
     image.save(buffer, format='JPEG', quality=85, optimize=True)
     buffer.seek(0)
-    return buffer
+    
+    return Image.open(buffer)

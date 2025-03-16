@@ -177,8 +177,7 @@ def set_route(app: Flask, model, device):
                                           400)
 
             # 이미지 최적화
-            optimized_buffer = optimize_image(img)
-            img = Image.open(optimized_buffer)
+            img = optimize_image(img)
 
             results = model(img, exist_ok=True, device=device)
             detections = []
@@ -270,7 +269,8 @@ def set_route(app: Flask, model, device):
                         'assistant_request_id': assistant_request_id
                     }
             else:
-                raise Exception("토큰이 필요합니다.")
+                raise Exception("토큰이 필요합니다.", 
+                                400)
                 # # Do not save the image to disk or database
                 # buffered = io.BytesIO()
                 # img.save(buffered, format='JPEG')
