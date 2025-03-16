@@ -173,10 +173,9 @@ const onFileChange = async (event) => {
     }
 };
 
-const handlePredictResponse = async (data) => {
-
+const handlePredictResponse = async (response) => {
     // 에러 응답 처리 1 - 서버 연결 실패 시,
-    if (data === undefined) {
+    if (response === undefined) {
         await router.push({
             name: 'FishResultError',
             query: {
@@ -186,19 +185,18 @@ const handlePredictResponse = async (data) => {
     }
 
     // 에러 응답 처리 2 - 
-    if (data.status !== '202') {
-        console.log('data.errorType:', data.data.error);
-        console.log('data.errorType:', data.status);
+    if (response.status !== 200) {
         await router.push({
             name: 'FishResultError',
             query: {
-                errorType: data.status,
-                message: data.message,
+                errorType: response.status,
+                message: response.message,
             }
         });
         return;
     } 
 
+    const data = response.data
     const detections = data.detections;
     const imageUrl = data.imageUrl || null;
     const imageBase64 = data.image_base64 || null;
