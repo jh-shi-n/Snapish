@@ -166,18 +166,22 @@ def set_route(app: Flask, model, device):
                 # 파일 타입 검증
                 if not allowed_file(file.filename):
                     return error_response("지원하지 않는 파일 형식입니다.",
-                                          "Unsupported Media Typed",
+                                          "Unsupported Media Type",
                                           415)               
                 try:
                     img = Image.open(file.stream).convert('RGB')
-                    
                 except Exception as e:
                     return error_response("요청 파일을 처리할 수 없습니다",
                                           "Bad Request",
                                           400)
 
             # 이미지 최적화
-            img = optimize_image(img)
+            try:
+                img = optimize_image(img)
+            except:
+                return error_response("요청 파일을 처리할 수 없습니다",
+                                    "Bad Request",
+                                    400)
 
             results = model(img, exist_ok=True, device=device)
             detections = []
@@ -271,23 +275,15 @@ def set_route(app: Flask, model, device):
             else:
                 raise Exception("토큰이 필요합니다.", 
                                 400)
-                # # Do not save the image to disk or database
-                # buffered = io.BytesIO()
-                # img.save(buffered, format='JPEG')
-                # img_str = base64.b64encode(buffered.getvalue()).decode()
-                # response_data = {
-                #     'detections': detections,
-                #     'image_base64': img_str,
-                #     'assistant_request_id': assistant_request_id
-                # }
 
             session.close()
             
             return success_response("요청이 성공적으로 처리되었습니다",
                                     response_data)
         except Exception as e:
-            logging.error(f"Error processing image: {e}")
-            return jsonify({'error': '이미지 처리 중 오류가 발생했습니다.'}), 500
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                  "Internal Server Error",
+                                  500)
         
     @app.route('/predict/chat', methods=['POST'])
     def assistant_talk_result():
