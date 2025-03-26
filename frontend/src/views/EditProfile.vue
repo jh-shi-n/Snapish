@@ -74,7 +74,6 @@
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
-import axios from '@/axios';
 
 const username = ref('');
 const email = ref('');
@@ -157,11 +156,7 @@ const handleEditProfile = async () => {
             payload.new_password = newPassword.value;
         }
 
-        await axios.put('/profile', payload, {  // Changed from '/api/profile' to '/profile'
-            headers: {
-                Authorization: `Bearer ${store.state.token}`,
-            },
-        });
+        await store.dispatch('updateProfile', payload);
 
         router.push('/profile');
     } catch (error) {

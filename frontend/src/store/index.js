@@ -241,7 +241,7 @@ export default createStore({
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-        const profileResponse = response.data
+        const profileResponse = response.data.data
         commit('setUser', profileResponse);
       } catch (error) {
         console.error('Error fetching user profile:', error);
