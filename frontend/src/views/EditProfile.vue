@@ -7,8 +7,9 @@
                 <!-- 기본 정보 섹션 -->
                 <div>
                     <label for="username" class="block text-gray-700">아이디</label>
-                    <input v-model="username" id="username" type="text" placeholder="아이디" required
-                        class="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" />
+                    <strong>
+                        {{ username }}
+                    </strong>
                 </div>
                 <div>
                     <label for="email" class="block text-gray-700">이메일</label>
@@ -73,9 +74,10 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { computed } from 'vue';
 import { useStore } from 'vuex';
 
-const username = ref('');
+const username = computed(() => store.state.user.username);
 const email = ref('');
 const currentPassword = ref('');
 const newPassword = ref('');
