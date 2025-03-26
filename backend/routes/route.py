@@ -319,9 +319,13 @@ def set_route(app: Flask, model, device):
     def profile(user_id):
         session = Session()
         current_user = session.query(User).filter_by(user_id=user_id).first()
+        
+        # TO-DO : Add login route
         if not current_user:
             session.close()
-            return jsonify({'message': 'User not found'}), 404
+            return error_response("현재 세션에 로그인된 유저를 찾을 수 없습니다.",
+                                  "Not Found",
+                                  404)
 
         if request.method == 'GET':
             user_data = {
@@ -330,31 +334,37 @@ def set_route(app: Flask, model, device):
                 'email': current_user.email,
                 'full_name': current_user.full_name,
                 'age': current_user.age,
-                'avatar': current_user.avatar,  # Include avatar URL
+                'avatar': current_user.avatar,
             }
             session.close()
-            return jsonify(user_data)
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    user_data)
         elif request.method == 'PUT':
             data = request.get_json()
             if not data:
                 session.close()
-                return jsonify({'message': 'Invalid input'}), 400
+                return error_response("잘못된 요청입니다.",
+                                      "Bad Request",
+                                      400)
             # 사용자 정보 업데이트
             current_user.username = data.get('username', current_user.username)
             current_user.email = data.get('email', current_user.email)
             current_user.full_name = data.get('full_name', current_user.full_name)
             current_user.age = data.get('age', current_user.age)
+            
             # 비밀번호 변경 처리
             if data.get('current_password') and data.get('new_password'):
                 if check_password_hash(current_user.password_hash, data['current_password']):
                     current_user.password_hash = generate_password_hash(data['new_password'])
                 else:
                     session.close()
-                    return jsonify({'message': '현재 비밀번호가 일치하지 않습니다.'}), 400
+                    return error_response("입력된 비밀번호가 맞지 않습니다.",
+                                          400)                
             session.add(current_user)
             session.commit()
             session.close()
-            return jsonify({'message': '프로필이 성공적으로 업데이트되었습니다.'}), 200
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    None)
 
     @app.route('/recent-activities', methods=['GET', 'POST'])
     @token_required
