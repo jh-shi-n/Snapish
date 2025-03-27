@@ -327,44 +327,60 @@ def set_route(app: Flask, model, device):
                                   "Not Found",
                                   404)
 
+        # 로그인 이후 Profile 표시 시, 사용
         if request.method == 'GET':
-            user_data = {
-                'user_id': current_user.user_id,
-                'username': current_user.username,
-                'email': current_user.email,
-                'full_name': current_user.full_name,
-                'age': current_user.age,
-                'avatar': current_user.avatar,
-            }
-            session.close()
-            return success_response("요청이 성공적으로 처리되었습니다.",
-                                    user_data)
+            try:
+                user_data = {
+                    'user_id': current_user.user_id,
+                    'username': current_user.username,
+                    'email': current_user.email,
+                    'full_name': current_user.full_name,
+                    'age': current_user.age,
+                    'avatar': current_user.avatar,
+                }
+                return success_response("요청이 성공적으로 처리되었습니다.",
+                                        user_data)
+            except Exception as e:
+                return error_response(f"서버 오류: {str(e)}", 500)
+                
+            finally:
+                session.close()
+        
+        # 로그인 이후 Profile 페이지에서 프로필 변경 시 사용
         elif request.method == 'PUT':
             data = request.get_json()
+            # 기존 Form과 다른 형태거나, 데이터가 없는 경우
             if not data:
                 session.close()
                 return error_response("잘못된 요청입니다.",
                                       "Bad Request",
                                       400)
-            # 사용자 정보 업데이트
-            current_user.username = data.get('username', current_user.username)
-            current_user.email = data.get('email', current_user.email)
-            current_user.full_name = data.get('full_name', current_user.full_name)
-            current_user.age = data.get('age', current_user.age)
-            
-            # 비밀번호 변경 처리
-            if data.get('current_password') and data.get('new_password'):
-                if check_password_hash(current_user.password_hash, data['current_password']):
+                
+            # 비밀번호 검증 작업 수행 후, 데이터 업데이트
+            try:
+                if data.get('current_password') and data.get('new_password'):
+                    if not check_password_hash(current_user.password_hash, data['current_password']):
+                        return error_response("입력된 비밀번호가 맞지 않습니다.", 
+                                              400)
+                    
                     current_user.password_hash = generate_password_hash(data['new_password'])
-                else:
-                    session.close()
-                    return error_response("입력된 비밀번호가 맞지 않습니다.",
-                                          400)                
-            session.add(current_user)
-            session.commit()
-            session.close()
-            return success_response("요청이 성공적으로 처리되었습니다.",
-                                    None)
+
+                current_user.username = data.get('username', current_user.username)
+                current_user.email = data.get('email', current_user.email)
+                current_user.full_name = data.get('full_name', current_user.full_name)
+                current_user.age = data.get('age', current_user.age)
+
+                session.commit() 
+                return success_response("요청이 성공적으로 처리되었습니다.", 
+                                        None)
+
+            except Exception as e:
+                session.rollback()
+                return error_response(f"서버 오류: {str(e)}", 
+                                      500)
+
+            finally:
+                session.close()
 
     @app.route('/recent-activities', methods=['GET', 'POST'])
     @token_required
