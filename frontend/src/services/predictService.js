@@ -22,10 +22,9 @@ export async function requestPredict(formdata, token=null) {
       console.log(response)
 
       if (response.status === 200) {
-        console.log("predict success")
-        return { status : response.status, data : response.data.data}
+        return { status : response.status, 
+          data : response.data.data}
       } else {
-        console.log("none detect")
         throw { response: { status: 204, data: { message: "No content" } } }
       }
     } catch (error) {
@@ -35,7 +34,7 @@ export async function requestPredict(formdata, token=null) {
       if ([422, 204, 405, 415, 400].includes(error.response.status)) { 
         console.log(`Error Status: ${error.response.status}`);
         return { status: error.response.status, 
-                data: error.response.data };
+              data: error.response.data };
       }
 
       return { status: error.response.status, message: "Unhandled error" };
