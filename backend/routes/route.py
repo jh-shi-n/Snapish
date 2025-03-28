@@ -68,41 +68,53 @@ def set_route(app: Flask, model, device):
     @app.route('/signup', methods=['POST', 'GET'])
     def signup():
         data = request.get_json()
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
-
-        if not username or not email or not password:
+        if not data:
             return error_response("잘못된 요청입니다.",
-                                  "Bad Request : Form error",
+                                  "Bad Request : Invalid JSON",
                                   400)
-            
-        session = Session()
-        existing_user = session.query(User).filter(
-                            (User.username == username) | (User.email == email)
-                        ).first()
+        
+        try:
+            username = data.get('username')
+            email = data.get('email')
+            password = data.get('password')
 
-        if existing_user:
+            if not username or not email or not password:
+                return error_response("잘못된 요청입니다.",
+                                    "Bad Request : Form error",
+                                    400)
+                
+            session = Session()
+            existing_user = session.query(User).filter(
+                                (User.username == username) | (User.email == email)
+                            ).first()
+
+            if existing_user:
+                return error_response("이미 가입된 유저입니다.",
+                                    "Conflicted : Already existed User",
+                                    409)
+
+            hashed_password = generate_password_hash(password)
+            new_user = User(
+                username=username,
+                email=email,
+                password_hash=hashed_password,
+                created_at=datetime.now()
+            )
+
+            session.add(new_user)
+            session.commit()
+
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    None,
+                                    201)
+        except Exception as e:
+            session.rollback()
+            return error_response("서버 오류", 
+                                  f"Internal Server Error: {str(e)}",
+                                  500)
+        finally:
             session.close()
-            return error_response("충돌",
-                                  "Confilcted : Already existed User",
-                                  409)
-
-        hashed_password = generate_password_hash(password)
-        new_user = User(
-            username=username,
-            email=email,
-            password_hash=hashed_password,
-            created_at=datetime.now()
-        )
-
-        session.add(new_user)
-        session.commit()
-        session.close()
-
-        return success_response("요청이 성공적으로 처리되었습니다.",
-                                None,
-                                201)
+            
 
     @app.route('/login', methods=['POST', 'GET'])
     def login():
