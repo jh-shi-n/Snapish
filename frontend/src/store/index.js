@@ -280,7 +280,6 @@ export default createStore({
             longitude: item.longitude || null,
             memo: item.memo || ''
           }));
-          console.log(formattedCatches)
           commit("setCatches", formattedCatches);
         } catch (error) {
           commit("setError", error);

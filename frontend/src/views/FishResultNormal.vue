@@ -306,8 +306,8 @@ const fetchDetections = async () => {
           'Authorization': `Bearer ${token}`,
         },
       });
-      parsedDetections.value = response.data.detections;
-      imageUrl.value = response.data.imageUrl;
+      parsedDetections.value = response.data.data.detections;
+      imageUrl.value = response.data.data.imageUrl;
     } 
     errorMessage.value = '';
   } catch (e) {
