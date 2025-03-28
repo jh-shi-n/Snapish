@@ -271,7 +271,7 @@ export default createStore({
               Authorization: `Bearer ${state.token}`,
             },
           });
-          const formattedCatches = response.data.map(item => ({
+          const formattedCatches = response.data.data.map(item => ({
             ...item,
             catch_date: item.catch_date || new Date().toISOString().split('T')[0],
             weight_kg: item.weight_kg || null,
@@ -280,6 +280,7 @@ export default createStore({
             longitude: item.longitude || null,
             memo: item.memo || ''
           }));
+          console.log(formattedCatches)
           commit("setCatches", formattedCatches);
         } catch (error) {
           commit("setError", error);
@@ -302,8 +303,7 @@ export default createStore({
           throw new Error('Catch ID is required');
         }
         const token = localStorage.getItem("token");
-        const response = await axios.put(
-          `/catches/${updatedCatch.id}`,
+        const response = await axios.put(`/catches/${updatedCatch.id}`,
           updatedCatch,
           {
             headers: {
@@ -312,8 +312,8 @@ export default createStore({
             }
           }
         );
-        commit("UPDATE_CATCH", response.data);
-        return response.data;
+        commit("UPDATE_CATCH", response.data.data);
+        return response.data.data;
       } catch (error) {
         console.error(
           "Update catch error:",

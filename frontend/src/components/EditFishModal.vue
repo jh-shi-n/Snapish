@@ -181,6 +181,9 @@ const saveFishData = async () => {
       memo: fishData.value.memo
     };
 
+
+  console.log(`MOUNTED ${JSON.stringify(updatedData, null, 2)}` )
+
     const response = await store.dispatch('updateCatch', updatedData);
     emit('save', response);
     emit('close');
