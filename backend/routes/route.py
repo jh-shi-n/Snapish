@@ -84,14 +84,16 @@ def set_route(app: Flask, model, device):
                                     400)
                 
             session = Session()
-            existing_user = session.query(User).filter(
-                                (User.username == username) | (User.email == email)
-                            ).first()
+            
+            existing_user_by_username = session.query(User).filter(User.username == username).first()
+            existing_user_by_email = session.query(User).filter(User.email == email).first()
 
-            if existing_user:
-                return error_response("이미 가입된 유저입니다.",
-                                    "Conflicted : Already existed User",
-                                    409)
+            if existing_user_by_username and existing_user_by_email:
+                return error_response("이미 가입된 유저입니다.", "Conflicted : Username and Email already exist", 409)
+            elif existing_user_by_username:
+                return error_response("이미 사용 중인 아이디입니다.", "Conflicted : Username already exists", 409)
+            elif existing_user_by_email:
+                return error_response("이미 가입된 이메일입니다.", "Conflicted : Email already exists", 409)
 
             hashed_password = generate_password_hash(password)
             new_user = User(
