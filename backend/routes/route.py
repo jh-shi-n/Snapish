@@ -236,6 +236,8 @@ def set_route(app: Flask, model, device):
 
             # 결과 DB 저장
             session = Session()
+            
+            # 토큰 확인
             token = request.headers.get('Authorization')
             if token:
                 token = token.split(' ')[1]
@@ -251,22 +253,8 @@ def set_route(app: Flask, model, device):
             if current_user:
                 # Check if catchId is provided in the request
                 catch_id = request.args.get('catchId')
-                if catch_id:
-                    # Update existing catch
-                    existing_catch = session.query(Catch).filter_by(catch_id=catch_id, user_id=current_user.user_id).first()
-                    if existing_catch:
-                        existing_catch.detect_data = detections
-                        existing_catch.photo_url = filename
-                        existing_catch.catch_date = datetime.now()
-                        session.commit()
-                        response_data = {
-                            'id': existing_catch.catch_id,
-                            'detections': detections,
-                            'imageUrl': filename
-                        }
-                    else:
-                        return jsonify({'error': 'Catch not found'}), 404
-                else:
+                
+                if not catch_id:
                     # Save new catch
                     filename = secure_filename(f"{uuid.uuid4().hex}.jpg")
                     file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], filename)
@@ -286,18 +274,40 @@ def set_route(app: Flask, model, device):
                         'imageUrl': filename,
                         'assistant_request_id': assistant_request_id
                     }
+                    return success_response("요청이 성공적으로 처리되었습니다",
+                                                response_data)
+                    
+                else:
+                    # Update existing catch
+                    catch_result = session.query(Catch).filter_by(catch_id=catch_id, user_id=current_user.user_id).first()
+                    if catch_result:
+                        catch_result.detect_data = detections
+                        catch_result.photo_url = filename
+                        catch_result.catch_date = datetime.now()
+                        session.commit()
+                        response_data = {
+                            'id': catch_result.catch_id,
+                            'detections': detections,
+                            'imageUrl': filename
+                        }
+                        return success_response("요청이 성공적으로 처리되었습니다",
+                                                response_data)
+                    else:
+                        return error_response("요청한 정보를 찾을 수 없습니다.",
+                                              "Not found : catch",
+                                              404)
             else:
                 raise Exception("토큰이 필요합니다.", 
                                 400)
 
-            session.close()
-            
-            return success_response("요청이 성공적으로 처리되었습니다",
-                                    response_data)
         except Exception as e:
+            session.rollback()
             return error_response("요청 진행 중 오류가 발생하였습니다.",
                                   "Internal Server Error",
                                   500)
+        finally:
+            session.close()
+            
         
     @app.route('/predict/chat', methods=['POST'])
     def assistant_talk_result():
@@ -464,9 +474,7 @@ def set_route(app: Flask, model, device):
             
             return success_response("요청이 성공적으로 처리되었습니다",
                                     new_catch_info)
-        # jsonify({
-        #         'message': '성공적으로 추가되었습니다.'
-        #     })
+
         except Exception as e:
             session.rollback()
             return jsonify({'error': str(e)}), 500
