@@ -645,20 +645,29 @@ def set_route(app: Flask, model, device):
     def get_detections(user_id):
         imageUrl = request.args.get('imageUrl')
         if not imageUrl:
-            return jsonify({'error': 'imageUrl is required'}), 400
-
+            return error_response("잘못된 요청입니다.",
+                                  "Bad Request : imageURL is required",
+                                  400)
         try:
             session = Session()
             catch = session.query(Catch).filter_by(photo_url=imageUrl).first()
-            session.close()
 
             if not catch:
-                return jsonify({'error': 'No catch found for the provided imageUrl'}), 404
-
-            return jsonify({'detections': catch.detect_data, 'imageUrl': catch.photo_url})
+                return error_response("잘못된 요청입니다.",
+                                      "Not Found : catch result",
+                                      404)
+            catch_result = {
+                'detections': catch.detect_data, 
+                'imageUrl': catch.photo_url
+                }
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    catch_result)
         except Exception as e:
-            logging.error(f"Error in get_detections: {e}")
-            return jsonify({'error': 'Internal server error'}), 500
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                "Internal Server Error",
+                                500)        
+        finally:
+            session.close()
 
     @app.route('/api/spots', methods=['GET'])
     def fishing_spot_all():
