@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from werkzeug.utils import secure_filename
 from PIL import Image
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -930,7 +930,7 @@ def set_route(app: Flask, model, device):
             consent = session.query(AIConsent).filter_by(user_id=user_id).first()
             consent_result = {
                 'hasConsent': bool(consent and consent.consent_given),
-                'lastConsentDate': consent.consent_date.isoformat() if consent else None
+                'lastConsentDate': consent.consent_date if consent else None
             }
             return success_response("요청이 성공적으로 처리되었습니다.",
                                     consent_result)
@@ -1039,7 +1039,7 @@ def set_route(app: Flask, model, device):
                     'title': post.title,
                     'content': post.content,
                     'images': [get_full_url(image) for image in (post.images or [])],
-                    'created_at': post.created_at.isoformat(),
+                    'created_at': post.created_at.astimezone(timezone(timedelta(hours=9))).isoformat(),
                     'likes_count': session.query(PostLike).filter_by(post_id=post.post_id).count(),
                     'comments_count': session.query(PostComment).filter_by(post_id=post.post_id).count(),
                     'is_liked': is_liked
@@ -1048,15 +1048,20 @@ def set_route(app: Flask, model, device):
                 
             total_pages = (total + per_page - 1) // per_page
             
-            return jsonify({
-                'posts': result,
-                'total': total,
-                'pages': total_pages,
-                'current_page': page
-            })
+            result_total = {
+                            'posts': result,
+                            'total': total,
+                            'pages': total_pages,
+                            'current_page': page
+                        }
+            
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    result_total)
         except Exception as e:
             logging.error(f"Error getting posts: {str(e)}")
-            return jsonify({'error': '게시물을 불러오는 중 오류가 발생했습니다.'}), 500
+            return error_response("게시물을 불러오는 중 오류가 발생했습니다.",
+                                  "Internal Server Error",
+                                  500)
         finally:
             session.close()
 
@@ -1071,7 +1076,9 @@ def set_route(app: Flask, model, device):
             images = request.files.getlist('images')
 
             if not title or not content:
-                return jsonify({'error': '제목과 내용은 필수입니다.'}), 400
+                return error_response('제목과 내용은 필수입니다.',
+                                      "Bad Request",
+                                      400)
 
             # Create new post
             new_post = CommunicationBoard(
@@ -1111,34 +1118,42 @@ def set_route(app: Flask, model, device):
                     'title': new_post.title,
                     'content': new_post.content,
                     'images': [get_full_url(url) for url in new_post.images],
-                    'created_at': new_post.created_at.isoformat(),
-                    'updated_at': new_post.updated_at.isoformat(),
+                    'created_at': new_post.created_at.astimezone(timezone(timedelta(hours=9))).isoformat(),
+                    'updated_at': new_post.updated_at,
                     'likes_count': 0,
                     'comments_count': 0,
                     'is_liked': False
                 }
             }
-            return jsonify(response_data), 201
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    response_data,
+                                    201)
 
         except Exception as e:
             session.rollback()
             logging.error(f"Error creating post: {str(e)}")
-            return jsonify({'error': '게시물 작성 중 오류가 발생했습니다.'}), 500
+            return error_response('게시물 작성 중 오류가 발생했습니다.',
+                                  "Internal Server Error",
+                                  500)
         finally:
             session.close()
 
-    @app.route('/api/posts/<int:post_id>', methods=['GET', 'POST'])
+    @app.route('/api/posts/<int:post_id>', methods=['GET'])
     @token_required
     def get_post(user_id, post_id):
         session = Session()
         try:
             post = session.query(CommunicationBoard).get(post_id)
             if not post:
-                return jsonify({'error': '게시물을 찾을 수 없습니다.'}), 404
+                return error_response('게시물을 찾을 수 없습니다.',
+                                      "Not Found : Post", 
+                                      404)
 
             user = session.query(User).get(post.user_id)
             if not user:
-                return jsonify({'error': '게시물 작성자를 찾을 수 없습니다.'}), 500
+                return error_response('작성자를 찾을 수 없습니다.',
+                                      "Not Found : User", 
+                                      404)
 
             # Check if the current user has liked this post
             is_liked = session.query(PostLike).filter_by(
@@ -1167,17 +1182,20 @@ def set_route(app: Flask, model, device):
                 'title': post.title,
                 'content': post.content,
                 'images': images,
-                'created_at': post.created_at.isoformat(),
-                'updated_at': post.updated_at.isoformat() if post.updated_at else post.created_at.isoformat(),
+                'created_at': post.created_at.astimezone(timezone(timedelta(hours=9))).isoformat(),
+                'updated_at': post.updated_at if post.updated_at else post.created_at.astimezone(timezone(timedelta(hours=9))).isoformat(),
                 'likes_count': likes_count,
                 'comments_count': comments_count,
                 'is_liked': is_liked
             }
 
-            return jsonify(response_data)
+            return success_response("요청을 성공적으로 수행하였습니다.",
+                                    response_data)
         except Exception as e:
             logging.error(f"Error getting post {post_id}: {str(e)}")
-            return jsonify({'error': '게시물을 불러오는 중 오류가 발생했습니다.'}), 500
+            return error_response('게시물을 불러오는 중 오류가 발생했습니다.',
+                                'Internal Server Error',
+                                500)
         finally:
             session.close()
 
@@ -1188,7 +1206,9 @@ def set_route(app: Flask, model, device):
         try:
             post = session.query(CommunicationBoard).filter_by(post_id=post_id, user_id=user_id).first()
             if not post:
-                return jsonify({'error': '게시물을 찾을 수 없거나 수정 권한이 없습니다.'}), 404
+                return error_response('게시물을 찾을 수 없거나 수정 권한이 없습니다.',
+                                      "Not Found",
+                                      404)
 
             # 현재 이미지 목록 백업
             current_images = post.images.copy() if post.images else []
@@ -1242,15 +1262,18 @@ def set_route(app: Flask, model, device):
                     'title': post.title,
                     'content': post.content,
                     'images': [get_full_url(url) for url in post.images],
-                    'updated_at': post.updated_at.isoformat()
+                    'updated_at': post.updated_at,
                 }
             }
-            return jsonify(response_data)
+            return success_response("요청을 성공적으로 수행하였습니다",
+                                    response_data)
 
         except Exception as e:
             session.rollback()
             logging.error(f"Error updating post {post_id}: {str(e)}")
-            return jsonify({'error': '게시물 수정 중 오류가 발생했습니다.'}), 500
+            return error_response('게시물 수정 중 오류가 발생했습니다.',
+                                  'Internal Server Error',
+                                  500)
         finally:
             session.close()
 
@@ -1261,7 +1284,9 @@ def set_route(app: Flask, model, device):
         try:
             post = session.query(CommunicationBoard).filter_by(post_id=post_id, user_id=user_id).first()
             if not post:
-                return jsonify({'error': '게시물을 찾을 수 없거나 삭제 권한이 없습니다.'}), 404
+                return error_response('게시물을 찾을 수 없거나 삭제 권한이 없습니다.',
+                                      'Not Found',
+                                      404)
 
             # Delete all associated images
             if post.images:
@@ -1273,11 +1298,13 @@ def set_route(app: Flask, model, device):
             session.delete(post)
             session.commit()
 
-            return jsonify({'message': '게시물이 성공적으로 삭제되었습니다.'})
+            return success_response('게시물이 성공적으로 삭제되었습니다.')
         except Exception as e:
             session.rollback()
             logging.error(f"Error deleting post: {str(e)}")
-            return jsonify({'error': '게시물 삭제 중 오류가 발생했습니다.'}), 500
+            return error_response('게시물 삭제 중 오류가 발생했습니다.',
+                                  'Internal Server Error',
+                                  500)
         finally:
             session.close()
 
@@ -1289,7 +1316,9 @@ def set_route(app: Flask, model, device):
             # Check if post exists
             post = session.query(CommunicationBoard).get(post_id)
             if not post:
-                return jsonify({'error': '게시물을 찾을 수 없습니다.'}), 404
+                return error_response('게시물을 찾을 수 없습니다.',
+                                    'Not Found',
+                                    404)
 
             # Check if user already liked the post
             existing_like = session.query(PostLike).filter_by(
@@ -1302,31 +1331,33 @@ def set_route(app: Flask, model, device):
                 session.delete(existing_like)
                 session.commit()
                 likes_count = session.query(PostLike).filter_by(post_id=post_id).count()
-                return jsonify({
-                    'message': '좋아요가 취소되었습니다.',
-                    'is_liked': False,
-                    'likes_count': likes_count
-                })
+                return success_response('좋아요가 취소되었습니다.',
+                                        data = {'is_liked': False,
+                                                'likes_count': likes_count,
+                                                }
+                                        )
             else:
                 # Like
                 new_like = PostLike(post_id=post_id, user_id=user_id)
                 session.add(new_like)
                 session.commit()
                 likes_count = session.query(PostLike).filter_by(post_id=post_id).count()
-                return jsonify({
-                    'message': '좋아요가 추가되었습니다.',
-                    'is_liked': True,
-                    'likes_count': likes_count
-                })
+                return success_response('좋아요가 추가되었습니다.',
+                                        data = {'is_liked': True,
+                                                'likes_count': likes_count,
+                                                }
+                                        )
 
         except Exception as e:
             session.rollback()
             logging.error(f"Error toggling like for post {post_id}: {str(e)}")
-            return jsonify({'error': '좋아요 처리 중 오류가 발생했습니다.'}), 500
+            return error_response('요청 진행 중 오류가 발생했습니다.',
+                                  'Internal Server Error',
+                                  500)
         finally:
             session.close()
 
-    @app.route('/api/posts/<int:post_id>/comments', methods=['GET', 'POST'])
+    @app.route('/api/posts/<int:post_id>/comments', methods=['GET'])
     @token_required
     def get_comments(user_id, post_id):
         session = Session()
@@ -1334,16 +1365,17 @@ def set_route(app: Flask, model, device):
             # Check if post exists
             post = session.query(CommunicationBoard).get(post_id)
             if not post:
-                return jsonify({'error': '게시물을 찾을 수 없습니다.'}), 404
+                return error_response('게시물을 찾을 수 없습니다.', 
+                                      'Not Found',
+                                      404)
 
             # Get comments with user information
             comments = session.query(PostComment, User).join(
-                User, PostComment.user_id == User.user_id
-            ).filter(
-                PostComment.post_id == post_id
-            ).order_by(
-                PostComment.created_at.desc()
-            ).all()
+                                        User, PostComment.user_id == User.user_id).filter(
+                                            PostComment.post_id == post_id
+                                        ).order_by(
+                                            PostComment.created_at.desc()
+                                        ).all()
 
             comments_data = [{
                 'comment_id': comment.comment_id,
@@ -1351,18 +1383,21 @@ def set_route(app: Flask, model, device):
                 'username': user.username,
                 'avatar': get_full_url(user.avatar),
                 'content': comment.content,
-                'created_at': comment.created_at.isoformat()
+                'created_at': comment.created_at.astimezone(timezone(timedelta(hours=9))).isoformat(),
             } for comment, user in comments]
 
-            return jsonify({'comments': comments_data})
+            return success_response("요청을 성공적으로 수행하였습니다.",
+                                    comments_data)
 
         except Exception as e:
             logging.error(f"Error getting comments for post {post_id}: {str(e)}")
-            return jsonify({'error': '댓글을 불러오는 중 오류가 발생했습니다.'}), 500
+            return error_response('댓글을 불러오는 중 오류가 발생했습니다.',
+                                  'Internal Server Error',
+                                  500)
         finally:
             session.close()
 
-    @app.route('/api/posts/<int:post_id>/comments', methods=['POST', 'GET'])
+    @app.route('/api/posts/<int:post_id>/comments', methods=['POST'])
     @token_required
     def create_comment(user_id, post_id):
         session = Session()
@@ -1370,11 +1405,15 @@ def set_route(app: Flask, model, device):
             # Check if post exists
             post = session.query(CommunicationBoard).get(post_id)
             if not post:
-                return jsonify({'error': '게시물을 찾을 수 없습니다.'}), 404
+                return error_response('댓글을 작성하고자 하는 게시물을 찾을 수 없습니다.', 
+                                      'Not Found',
+                                      404)
 
             data = request.get_json()
             if not data or not data.get('content'):
-                return jsonify({'error': '댓글 내용이 필요합니다.'}), 400
+                return error_response('댓글 내용을 작성해주세요.', 
+                                      'Bad Request',
+                                      400)
 
             # Create new comment
             new_comment = PostComment(
@@ -1394,22 +1433,22 @@ def set_route(app: Flask, model, device):
                 'username': user.username,
                 'avatar': get_full_url(user.avatar),
                 'content': new_comment.content,
-                'created_at': new_comment.created_at.isoformat()
+                'created_at': new_comment.created_at.astimezone(timezone(timedelta(hours=9))).isoformat(),
             }
 
-            return jsonify({
-                'message': '댓글이 성공적으로 작성되었습니다.',
-                'comment': comment_data
-            })
+            return success_response('댓글이 성공적으로 작성되었습니다.',
+                                    comment_data)
 
         except Exception as e:
             session.rollback()
             logging.error(f"Error creating comment for post {post_id}: {str(e)}")
-            return jsonify({'error': '댓글 작성 중 오류가 발생했습니다.'}), 500
+            return error_response('댓글을 작성 중 오류가 발생했습니다.',
+                                  'Internal Server Error',
+                                  500)
         finally:
             session.close()
 
-    @app.route('/api/posts/top', methods=['GET', 'POST'])
+    @app.route('/api/posts/top', methods=['GET'])
     def get_top_posts():
         session = Session()
         try:
@@ -1435,22 +1474,23 @@ def set_route(app: Flask, model, device):
                     'post_id': post.post_id,
                     'user_id': post.user_id,
                     'username': user.username if user else 'Unknown',
-                    'avatar': get_full_url(user.avatar) if user else None,
+                    # 'avatar': get_full_url(user.avatar) if user else None,
                     'title': post.title,
                     'content': post.content,
                     'images': [get_full_url(image) for image in (post.images or [])],
-                    'created_at': post.created_at.isoformat(),
+                    'created_at': post.created_at.astimezone(timezone(timedelta(hours=9))).isoformat(),
                     'likes_count': session.query(PostLike).filter_by(post_id=post.post_id).count(),
                     'comments_count': session.query(PostComment).filter_by(post_id=post.post_id).count(),
                 }
                 result.append(post_data)
                 
-                
-
-            return jsonify(result)
+            return success_response("요청을 성공적으로 수행하였습니다",
+                                    result)
         except Exception as e:
             logging.error(f"Error getting top posts: {str(e)}")
-            return jsonify({'error': 'Error fetching top posts'}), 500
+            return error_response('게시물 호출 중 오류가 발생하였습니다.'
+                                  'Internal Server Error',
+                                  500)
         finally:
             session.close()
             

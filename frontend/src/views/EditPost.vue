@@ -168,12 +168,13 @@ export default {
             'Authorization': `Bearer ${store.state.token}`
           }
         })
-        post.value = response.data
-        title.value = response.data.title
-        content.value = response.data.content
-        if (response.data.images?.length) {
-          imagePreviews.value = [...response.data.images]
-          existingImages.value = [...response.data.images] // 기존 이미지 저장
+
+        post.value = response.data.data
+        title.value = response.data.data.title
+        content.value = response.data.data.content
+        if (response.data.data.images?.length) {
+          imagePreviews.value = [...response.data.data.images]
+          existingImages.value = [...response.data.data.images] // 기존 이미지 저장
         }
       } catch (error) {
         console.error('Error fetching post:', error)
@@ -242,6 +243,15 @@ export default {
         return
       }
 
+      if (!isTitleLengthValid.value || title.value.length <= 0) {
+        alert('제목을 작성하셔야합니다.')
+        return
+      }
+      if (!isContentLengthValid.value || content.value.length <= 0) {
+        alert('내용을 작성하셔야합니다.')
+        return
+      }
+
       isSubmitting.value = true
 
       try {
@@ -273,7 +283,7 @@ export default {
               'Authorization': `Bearer ${store.state.token}`
             }
           })
-          await store.dispatch('updatePost', response.data.post)
+          await store.dispatch('updatePost', response.data.data.post)
         }
         
         router.push('/community')
