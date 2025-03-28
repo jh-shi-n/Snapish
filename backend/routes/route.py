@@ -928,14 +928,16 @@ def set_route(app: Flask, model, device):
         session = Session()
         try:
             consent = session.query(AIConsent).filter_by(user_id=user_id).first()
-            return jsonify({
+            consent_result = {
                 'hasConsent': bool(consent and consent.consent_given),
                 'lastConsentDate': consent.consent_date.isoformat() if consent else None
-            })
+            }
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    consent_result)
         finally:
             session.close()
 
-    @app.route('/api/consent', methods=['POST', 'GET'])
+    @app.route('/api/consent', methods=['POST'])
     @token_required
     def update_consent(user_id):
         data = request.get_json()
@@ -955,10 +957,16 @@ def set_route(app: Flask, model, device):
                 )
                 session.add(consent)
             session.commit()
-            return jsonify({'message': 'Consent updated successfully'})
+            return success_response("요청이 성공적으로 수행되었습니다.")
+        
+        except Exception as e:
+            session.rollback()
+            return error_response("요청 수행 중 오류가 발생하였습니다.",
+                                  "Internal Server Error",
+                                  500)
         finally:
             session.close()
-
+            
     # 서비스 목록 API 추가
     @app.route('/api/services', methods=['GET', 'POST'])
     def get_services():
@@ -990,8 +998,8 @@ def set_route(app: Flask, model, device):
             },
             # 추가 서비스들...
         ]
-        return jsonify(services)
-
+        return success_response("요청이 성공적으로 처리되었습니다.",
+                                services)
 
 
     @app.route('/api/posts', methods=['GET', 'POST'])

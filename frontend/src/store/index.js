@@ -346,7 +346,7 @@ export default createStore({
     async fetchServices({ commit }) {
       try {
         const response = await axios.get('/api/services');
-        commit('SET_SERVICES', response.data);
+        commit('SET_SERVICES', response.data.data);
       } catch (error) {
         console.error('Error fetching services:', error);
         // 기본 서비스 목록 사용
@@ -395,15 +395,14 @@ export default createStore({
     },
     async checkConsent({ commit }) {
       try {
-        console.log('Checking consent from backend...');
-        const response = await axios.get('/api/consent/check', {
+          const response = await axios.get('/api/consent/check', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-        console.log('Consent response:', response.data);
-        commit('SET_CONSENT', response.data);
-        return response.data;
+        console.log(response.data)
+        commit('SET_CONSENT', response.data.data);
+        return response.data.data;
       } catch (error) {
         console.error('Error checking consent:', error);
         throw error;
