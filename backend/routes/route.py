@@ -739,11 +739,19 @@ def set_route(app: Flask, model, device):
     @app.route('/profile/avatar', methods=['POST'])
     @token_required
     def upload_avatar(user_id):
+        # Check request result 
         if 'avatar' not in request.files:
-            return jsonify({'error': 'No file part'}), 400
+            return error_response("잘못된 요청입니다.",
+                                  "Bad Request",
+                                  400)
         file = request.files['avatar']
+        
         if file.filename == '':
-            return jsonify({'error': 'No selected file'}), 400
+            return error_response("잘못된 요청입니다.",
+                                  "Bad Request",
+                                  400)
+        
+        # After checking file, update profile images
         if file and allowed_file(file.filename):
             filename = secure_filename(f"{user_id}_{uuid.uuid4().hex}.jpg")
             file_path = os.path.join(current_app.config["AVATAR_UPLOAD_FOLDER"], filename)
@@ -754,22 +762,30 @@ def set_route(app: Flask, model, device):
                 # Query the user within the new session
                 current_user = session.query(User).filter_by(user_id=user_id).first()
                 if not current_user:
-                    return jsonify({'error': 'User not found'}), 404
+                    return error_response("요청한 정보를 찾을수 없습니다.",
+                                  "Not Found : User",
+                                  404)
 
                 # Update user's avatar URL
                 current_user.avatar = f"/uploads/avatars/{filename}"
                 session.commit()
                 avatar_url = current_user.avatar
+                
             except Exception as e:
                 session.rollback()
-                logging.error(f"Error uploading avatar: {e}")
-                return jsonify({'error': 'Avatar upload failed'}), 500
+                return error_response("요청 수행 중 오류가 발생하였습니다.",
+                                  "Internal Server Error",
+                                  500)
             finally:
                 session.close()
 
-            return jsonify({'message': 'Avatar uploaded successfully', 'avatarUrl': avatar_url}), 200
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    avatar_url,
+                                    200)
         else:
-            return jsonify({'error': 'Invalid file type'}), 400
+            return error_response("잘못된 요청입니다.",
+                                  "Bad Request : Invalid file type",
+                                  400)
         
     # 요청 지점 위치와 가장 가까운 관측소의 해양 날씨 API 호출
     @app.route('/api/weather/sea', methods=['POST'])
