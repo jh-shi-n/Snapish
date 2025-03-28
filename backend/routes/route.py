@@ -1002,7 +1002,7 @@ def set_route(app: Flask, model, device):
                                 services)
 
 
-    @app.route('/api/posts', methods=['GET', 'POST'])
+    @app.route('/api/posts', methods=['GET'])
     @token_required
     def get_posts(user_id):
         try:
@@ -1060,7 +1060,7 @@ def set_route(app: Flask, model, device):
         finally:
             session.close()
 
-    @app.route('/api/posts', methods=['POST', 'GET'])
+    @app.route('/api/posts', methods=['POST'])
     @token_required
     def create_post(user_id):
         session = Session()
@@ -1444,6 +1444,8 @@ def set_route(app: Flask, model, device):
                     'comments_count': session.query(PostComment).filter_by(post_id=post.post_id).count(),
                 }
                 result.append(post_data)
+                
+                
 
             return jsonify(result)
         except Exception as e:
