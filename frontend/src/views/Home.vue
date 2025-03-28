@@ -145,7 +145,7 @@ const isAuthenticated = computed(() => store.getters.isAuthenticated);
 
 const getImageUrl = (url) => {
   if (!url) return DEFAULT_IMAGE;
-  return url.startsWith('http') ? url : `${BACKEND_BASE_URL}/uploads/${url}`;
+  return url.startsWith('http') ? url : `${BACKEND_BASE_URL}/${url}`;
 };
 
 onMounted(async () => {
@@ -157,7 +157,7 @@ onMounted(async () => {
       startAutoSlide();
     }
     const response = await axios.get('/api/posts/top');
-    hotIssues.value = response.data;
+    hotIssues.value = response.data.data;
   } catch (error) {
     console.error('Error:', error);
   } finally {

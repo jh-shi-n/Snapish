@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from werkzeug.utils import secure_filename
 from PIL import Image
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -60,7 +60,7 @@ def set_route(app: Flask, model, device):
                                     json_result)
 
         except Exception as e:
-            return error_response("서버 오류 발생",
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
                                   "Internal server error",
                                   500)
         
@@ -68,41 +68,55 @@ def set_route(app: Flask, model, device):
     @app.route('/signup', methods=['POST', 'GET'])
     def signup():
         data = request.get_json()
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
-
-        if not username or not email or not password:
+        if not data:
             return error_response("잘못된 요청입니다.",
-                                  "Bad Request : Form error",
+                                  "Bad Request : Invalid JSON",
                                   400)
+        
+        try:
+            username = data.get('username')
+            email = data.get('email')
+            password = data.get('password')
+
+            if not username or not email or not password:
+                return error_response("잘못된 요청입니다.",
+                                    "Bad Request : Form error",
+                                    400)
+                
+            session = Session()
             
-        session = Session()
-        existing_user = session.query(User).filter(
-                            (User.username == username) | (User.email == email)
-                        ).first()
+            existing_user_by_username = session.query(User).filter(User.username == username).first()
+            existing_user_by_email = session.query(User).filter(User.email == email).first()
 
-        if existing_user:
+            if existing_user_by_username and existing_user_by_email:
+                return error_response("이미 가입된 유저입니다.", "Conflicted : Username and Email already exist", 409)
+            elif existing_user_by_username:
+                return error_response("이미 사용 중인 아이디입니다.", "Conflicted : Username already exists", 409)
+            elif existing_user_by_email:
+                return error_response("이미 가입된 이메일입니다.", "Conflicted : Email already exists", 409)
+
+            hashed_password = generate_password_hash(password)
+            new_user = User(
+                username=username,
+                email=email,
+                password_hash=hashed_password,
+                created_at=datetime.now()
+            )
+
+            session.add(new_user)
+            session.commit()
+
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    None,
+                                    201)
+        except Exception as e:
+            session.rollback()
+            return error_response("서버 오류", 
+                                  f"Internal Server Error: {str(e)}",
+                                  500)
+        finally:
             session.close()
-            return error_response("충돌",
-                                  "Confilcted : Already existed User",
-                                  409)
-
-        hashed_password = generate_password_hash(password)
-        new_user = User(
-            username=username,
-            email=email,
-            password_hash=hashed_password,
-            created_at=datetime.now()
-        )
-
-        session.add(new_user)
-        session.commit()
-        session.close()
-
-        return success_response("요청이 성공적으로 처리되었습니다.",
-                                None,
-                                201)
+            
 
     @app.route('/login', methods=['POST', 'GET'])
     def login():
@@ -111,8 +125,8 @@ def set_route(app: Flask, model, device):
         password = data.get('password')
 
         if not username or not password:
-            return error_response("잘못된 요청입니다.",
-                                  "Username and password are required.",
+            return error_response("정보가 정상적으로 입력되지 않았습니다.",
+                                  "Bad Request",
                                   400)
 
         session = Session()
@@ -151,53 +165,37 @@ def set_route(app: Flask, model, device):
             
 
 
-    # predict 라트 수정
-    @app.route('/backend/predict', methods=['POST', 'GET'])
-    def predict():
+    # predict API
+    @app.route('/predict', methods=['POST'])
+    @token_required
+    def predict(user_id):
         try:
             if 'image' in request.files:
                 file = request.files['image']
                 # 파일 이름이 비어있는지 먼저 확인
                 if file.filename == '':
-                    return jsonify({
-                        'error': 'invalid_file_name',
-                        'message': '파일이 선택되지 않았습니다.'
-                    }), 400
-                    
+                    return error_response("파일이 선택되지 않았습니다.",
+                                          "Method Not Allowed",
+                                          405)   
                 # 파일 타입 검증
                 if not allowed_file(file.filename):
-                    return jsonify({
-                        'error': 'invalid_file_type',
-                        'message': '지원하지 않는 파일 형식입니다.'
-                    }), 400
-                    
+                    return error_response("지원하지 않는 파일 형식입니다.",
+                                          "Unsupported Media Type",
+                                          415)               
                 try:
                     img = Image.open(file.stream).convert('RGB')
                 except Exception as e:
-                    return jsonify({
-                        'error': 'invalid_file_open',
-                        'message': '이미지를 처리할 수 없습니다.'
-                    }), 400
-            else:
-                try:
-                    data = request.get_json()
-                    image_base64 = data.get('image_base64')
-                    if not image_base64:
-                        return jsonify({                   
-                                        'error': 'invalid_image_formatting_error',
-                                        'message': '업로드 이미지를 변환하는 중 오류가 발생했습니다.'
-                                        }), 400
-                    image_data = base64.b64decode(image_base64)
-                    img = Image.open(io.BytesIO(image_data)).convert('RGB')
-                except Exception as e:
-                    ({                   
-                        'error': 'invalid_image_open',
-                        'message': '업로드 이미지를 열지 못했습니다.'
-                        }), 400
+                    return error_response("요청 파일을 처리할 수 없습니다",
+                                          "Bad Request",
+                                          400)
 
             # 이미지 최적화
-            optimized_buffer = optimize_image(img)
-            img = Image.open(optimized_buffer)
+            try:
+                img = optimize_image(img)
+            except:
+                return error_response("요청 파일을 처리할 수 없습니다",
+                                    "Bad Request",
+                                    400)
 
             results = model(img, exist_ok=True, device=device)
             detections = []
@@ -216,24 +214,30 @@ def set_route(app: Flask, model, device):
                         
             detections.sort(key=lambda x: x['confidence'], reverse=True)
             
+            # 검출 여부에 따라 if-else
             if detections:
+                top_fish = detections[0]['label']
                 try:
-                    top_fish = detections[0]['label']
                     assistant_request_id = assistant_talk_request(f"{top_fish}")
                 
                 except Exception as e:
                     print(f"assistant_request_id 호출 실패 : {e}")
                     assistant_request_id = None
 
-            # 감지 결과가 없거나 모든 결과의 정확도가 낮은 경우
-            if not detections:
-                return jsonify({
-                    'error': 'detection_failed',
-                    'errorType': 'no_detection' if not results[0].boxes.cls.size(0) else 'low_confidence',
-                    'message': '물고기를 감지할 수 없습니다.' if not results[0].boxes.cls.size(0) else '물고기를 정확하게 인식할 수 없습니다.'
-                }), 200  # 프론트엔드 처리를 위해 200 반환
+            else:
+                if not results[0].boxes.cls.size(0) :
+                    return error_response("물고기를 감지할 수 없습니다.",
+                                          "Unprocessable Entity",
+                                          422)
+                else:
+                    return error_response("물고기를 감지할 수 없습니다.",
+                                          "No content",
+                                          204)
 
+            # 결과 DB 저장
             session = Session()
+            
+            # 토큰 확인
             token = request.headers.get('Authorization')
             if token:
                 token = token.split(' ')[1]
@@ -249,22 +253,8 @@ def set_route(app: Flask, model, device):
             if current_user:
                 # Check if catchId is provided in the request
                 catch_id = request.args.get('catchId')
-                if catch_id:
-                    # Update existing catch
-                    existing_catch = session.query(Catch).filter_by(catch_id=catch_id, user_id=current_user.user_id).first()
-                    if existing_catch:
-                        existing_catch.exif_data = detections
-                        existing_catch.photo_url = filename
-                        existing_catch.catch_date = datetime.now()
-                        session.commit()
-                        response_data = {
-                            'id': existing_catch.catch_id,
-                            'detections': detections,
-                            'imageUrl': filename
-                        }
-                    else:
-                        return jsonify({'error': 'Catch not found'}), 404
-                else:
+                
+                if not catch_id:
                     # Save new catch
                     filename = secure_filename(f"{uuid.uuid4().hex}.jpg")
                     file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], filename)
@@ -273,7 +263,7 @@ def set_route(app: Flask, model, device):
                     new_catch = Catch(
                         user_id=current_user.user_id,
                         photo_url=filename,
-                        exif_data=detections,
+                        detect_data=detections,
                         catch_date=datetime.now()
                     )
                     session.add(new_catch)
@@ -284,116 +274,175 @@ def set_route(app: Flask, model, device):
                         'imageUrl': filename,
                         'assistant_request_id': assistant_request_id
                     }
+                    return success_response("요청이 성공적으로 처리되었습니다",
+                                            response_data)
+                    
+                else:
+                    # Update existing catch
+                    catch_result = session.query(Catch).filter_by(catch_id=catch_id, user_id=current_user.user_id).first()
+                    if catch_result:
+                        catch_result.detect_data = detections
+                        catch_result.photo_url = filename
+                        catch_result.catch_date = datetime.now()
+                        session.commit()
+                        response_data = {
+                            'id': catch_result.catch_id,
+                            'detections': detections,
+                            'imageUrl': filename
+                        }
+                        return success_response("요청이 성공적으로 처리되었습니다",
+                                                response_data)
+                    else:
+                        return error_response("요청한 정보를 찾을 수 없습니다.",
+                                              "Not found : existed catch_id",
+                                              404)
             else:
-                # Do not save the image to disk or database
-                buffered = io.BytesIO()
-                img.save(buffered, format='JPEG')
-                img_str = base64.b64encode(buffered.getvalue()).decode()
-                response_data = {
-                    'detections': detections,
-                    'image_base64': img_str,
-                    'assistant_request_id': assistant_request_id
-                }
+                raise Exception("토큰이 필요합니다.", 
+                                400)
 
-            session.close()
-            return jsonify(response_data)
         except Exception as e:
-            logging.error(f"Error processing image: {e}")
-            return jsonify({'error': '이미지 처리 중 오류가 발생했습니다.'}), 500
+            session.rollback()
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                  "Internal Server Error",
+                                  500)
+        finally:
+            session.close()
+            
         
-    @app.route('/backend/chat/<thread_id>/<run_id>', methods=['GET', 'POST'])
-    def assistant_talk_result(thread_id, run_id):
+    @app.route('/predict/chat', methods=['POST'])
+    def assistant_talk_result():
+        thread_id = request.form.get('thread_id')
+        run_id = request.form.get('run_id')
+        
+        print(thread_id, run_id)
+        
         try:
             formatted_text = assistant_talk_get(thread_id, run_id)
             
-            if not formatted_text:
-                return jsonify({            
-                    'data': None,
-                    'status': 'No response from assistant'
-                }), 404
-                
-            return jsonify({
-                'data': formatted_text,
-                'status': 'Success'
-            })
+            print(formatted_text)
             
+            if not formatted_text:
+                return error_response("생성된 답변이 없습니다",
+                                      "Not Found",
+                                      404)
+                
+            return success_response("요청을 성공적으로 처리하였습니다",
+                                    formatted_text)
+                        
         except TimeoutError:
-            return jsonify({
-                'data': None,
-                'status': 'Assistant response timed out'
-            }), 408
+            return error_response("요청 시간이 초과되었습니다.",
+                                "TimeOut",
+                                408)
         except Exception as e:
-            return jsonify({
-                'data': None,
-                'status': f'Internal server error : {e}'
-            }), 500
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                  "Internal server error",
+                                  500)
 
     @app.route('/profile', methods=['GET', 'PUT'])
     @token_required
     def profile(user_id):
         session = Session()
         current_user = session.query(User).filter_by(user_id=user_id).first()
+        
+        # TO-DO : Add login route
         if not current_user:
             session.close()
-            return jsonify({'message': 'User not found'}), 404
+            return error_response("현재 세션에 로그인된 유저를 찾을 수 없습니다.",
+                                  "Not Found",
+                                  404)
 
+        # 로그인 이후 Profile 표시 시, 사용
         if request.method == 'GET':
-            user_data = {
-                'user_id': current_user.user_id,
-                'username': current_user.username,
-                'email': current_user.email,
-                'full_name': current_user.full_name,
-                'age': current_user.age,
-                'avatar': current_user.avatar,  # Include avatar URL
-            }
-            session.close()
-            return jsonify(user_data)
+            try:
+                user_data = {
+                    'user_id': current_user.user_id,
+                    'username': current_user.username,
+                    'email': current_user.email,
+                    'full_name': current_user.full_name,
+                    'age': current_user.age,
+                    'avatar': current_user.avatar,
+                }
+                return success_response("요청이 성공적으로 처리되었습니다.",
+                                        user_data)
+            except Exception as e:
+                return error_response(f"서버 오류: {str(e)}", 500)
+                
+            finally:
+                session.close()
+        
+        # 로그인 이후 Profile 페이지에서 프로필 변경 시 사용
         elif request.method == 'PUT':
             data = request.get_json()
+            # 기존 Form과 다른 형태거나, 데이터가 없는 경우
             if not data:
                 session.close()
-                return jsonify({'message': 'Invalid input'}), 400
-            # 사용자 정보 업데이트
-            current_user.username = data.get('username', current_user.username)
-            current_user.email = data.get('email', current_user.email)
-            current_user.full_name = data.get('full_name', current_user.full_name)
-            current_user.age = data.get('age', current_user.age)
-            # 비밀번호 변경 처리
-            if data.get('current_password') and data.get('new_password'):
-                if check_password_hash(current_user.password_hash, data['current_password']):
+                return error_response("잘못된 요청입니다.",
+                                      "Bad Request",
+                                      400)
+                
+            # 비밀번호 검증 작업 수행 후, 데이터 업데이트
+            try:
+                if data.get('current_password') and data.get('new_password'):
+                    if not check_password_hash(current_user.password_hash, data['current_password']):
+                        return error_response("입력된 비밀번호가 맞지 않습니다.", 
+                                              400)
+                    
                     current_user.password_hash = generate_password_hash(data['new_password'])
-                else:
-                    session.close()
-                    return jsonify({'message': '현재 비밀번호가 일치하지 않습니다.'}), 400
-            session.add(current_user)
-            session.commit()
-            session.close()
-            return jsonify({'message': '프로필이 성공적으로 업데이트되었습니다.'}), 200
 
-    @app.route('/recent-activities', methods=['GET', 'POST'])
-    @token_required
-    def recent_activities(user_id):
-        session = Session()
-        current_user = session.query(User).filter_by(user_id=user_id).first()
-        if not current_user:
-            session.close()
-            return jsonify({'message': 'User not found'}), 404
+                current_user.username = data.get('username', current_user.username)
+                current_user.email = data.get('email', current_user.email)
+                current_user.full_name = data.get('full_name', current_user.full_name)
+                current_user.age = data.get('age', current_user.age)
 
-        # 최근 동을 회하는 로직 (예: 데이터베이스에서 최근 5개 캐치를 가져오기)
-        activities = session.query(Catch).filter_by(user_id=current_user.user_id).order_by(Catch.catch_date.desc()).limit(5).all()
-        session.close()
+                session.commit() 
+                return success_response("요청이 성공적으로 처리되었습니다.", 
+                                        None)
+
+            except Exception as e:
+                session.rollback()
+                return error_response(f"서버 오류: {str(e)}", 
+                                      500)
+
+            finally:
+                session.close()
+
+    # # TO-DO : 현재 사용되지않는 기능, 사용할거면 Home의 updateDisplayCaches에 반영시켜야함
+    # @app.route('/recent-activities', methods=['GET', 'POST'])
+    # @token_required
+    # def recent_activities(user_id):
+    #     session = Session()
         
-        recent_activities = [
-            {
-                'fish': catch.species.name if catch.species else '알 수 없음',
-                'location': catch.location.address if catch.location else '알 수 없음',
-                'date': catch.catch_date.strftime('%Y-%m-%d'),
-                'image': catch.photo_url or '/placeholder.svg?height=80&width=80',
-            }
-            for catch in activities
-        ]
-        
-        return jsonify({'activities': recent_activities})
+    #     try:
+    #         current_user = session.query(User).filter_by(user_id=user_id).first()
+    #         if not current_user:
+    #             session.close()
+    #             return error_response("유저를 찾을 수 없습니다",
+    #                                 "Not Found",
+    #                                 404)
+
+    #         # 최근 활동을 조회 (예: 데이터베이스에서 최근 5개 캐치를 가져오기)
+    #         activities = session.query(Catch).filter_by(user_id=current_user.user_id).order_by(Catch.catch_date.desc()).limit(5).all()
+    #         session.close()
+            
+    #         recent_activities = [
+    #             {
+    #                 'fish': catch.species.name if catch.species else '알 수 없음',
+    #                 'location': catch.location.address if catch.location else '알 수 없음',
+    #                 'date': catch.catch_date.strftime('%Y-%m-%d'),
+    #                 'image': catch.photo_url or '/placeholder.svg?height=80&width=80',
+    #             }
+    #             for catch in activities
+    #         ]
+            
+    #         return success_response("요청이 성공적으로 처리되었습니다.",
+    #                                 recent_activities)
+    #     # jsonify({'activities': recent_activities})
+
+    #     except:
+    #         pass
+    #     finally:
+    #         session.close()
+            
 
     @app.route('/catches', methods=['POST'])
     @token_required
@@ -404,55 +453,67 @@ def set_route(app: Flask, model, device):
             new_catch = Catch(
                 user_id=user_id,
                 photo_url=data.get('imageUrl'),
-                exif_data=data.get('detections'),
+                detect_data=data.get('detections'),
                 catch_date=datetime.strptime(data.get('catch_date'), '%Y-%m-%d')
             )
             session.add(new_catch)
             session.commit()
             
-            return jsonify({
-                'id': new_catch.catch_id,
-                'imageUrl': new_catch.photo_url,
-                'detections': new_catch.exif_data,
-                'catch_date': new_catch.catch_date.strftime('%Y-%m-%d'),
-                'weight_kg': float(new_catch.weight_kg) if new_catch.weight_kg else None,
-                'length_cm': float(new_catch.length_cm) if new_catch.length_cm else None,
-                'latitude': float(new_catch.latitude) if new_catch.latitude else None,
-                'longitude': float(new_catch.longitude) if new_catch.longitude else None,
-                'memo': new_catch.memo,
-                'message': '치가 성공적으로 추가되었습니다.'
-            })
+            new_catch_info = {
+                        'id': new_catch.catch_id,
+                        'imageUrl': new_catch.photo_url,
+                        'detections': new_catch.detect_data,
+                        'catch_date': new_catch.catch_date.strftime('%Y-%m-%d'),
+                        'weight_kg': float(new_catch.weight_kg) if new_catch.weight_kg else None,
+                        'length_cm': float(new_catch.length_cm) if new_catch.length_cm else None,
+                        'latitude': float(new_catch.latitude) if new_catch.latitude else None,
+                        'longitude': float(new_catch.longitude) if new_catch.longitude else None,
+                        'memo': new_catch.memo,
+                        'message': '성공적으로 추가되었습니다.'
+                        }
+            
+            return success_response("요청이 성공적으로 처리되었습니다",
+                                    new_catch_info)
+
         except Exception as e:
             session.rollback()
-            return jsonify({'error': str(e)}), 500
+            return error_response("요청 진행 중 오류가 발생하였습니다",
+                                  "Internal Server Error",
+                                  500)
         finally:
             session.close()
 
-    @app.route('/catches', methods=['GET', 'POST'])
+    @app.route('/catches', methods=['GET'])
     @token_required
     def get_catches(user_id):
         session = Session()
         try:
             current_user = session.query(User).filter_by(user_id=user_id).first()
             if not current_user:
-                return jsonify({'message': 'User not found'}), 404
-
+                return error_response("요청한 유저를 찾을 수 없습니다.",
+                                  "User not found",
+                                  404)
+                
             catches = session.query(Catch).filter_by(user_id=current_user.user_id).all()
+            catches_json = [{'id': catch.catch_id,
+                            'imageUrl': catch.photo_url,
+                            'detections': catch.detect_data,
+                            'catch_date': catch.catch_date.strftime('%Y-%m-%d'),
+                            'weight_kg': float(catch.weight_kg) if catch.weight_kg else None,
+                            'length_cm': float(catch.length_cm) if catch.length_cm else None,
+                            'latitude': float(catch.latitude) if catch.latitude else None,
+                            'longitude': float(catch.longitude) if catch.longitude else None,
+                            'memo': catch.memo
+                            } for catch in catches]
             
-            # 모든 필요한 데이터를 포함하여 반환
-            return jsonify([{
-                'id': catch.catch_id,
-                'imageUrl': catch.photo_url,
-                'detections': catch.exif_data,
-                'catch_date': catch.catch_date.strftime('%Y-%m-%d'),
-                'weight_kg': float(catch.weight_kg) if catch.weight_kg else None,
-                'length_cm': float(catch.length_cm) if catch.length_cm else None,
-                'latitude': float(catch.latitude) if catch.latitude else None,
-                'longitude': float(catch.longitude) if catch.longitude else None,
-                'memo': catch.memo
-            } for catch in catches])
+            # Fetch catch result that filtered by user_id
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    catches_json)
+            
         except Exception as e:
-            return jsonify({'error': str(e)}), 500
+            return error_response("요청 진행 중 오류가 발생하였습니다",
+                                  "Internal Server Error",
+                                  500)        
         finally:
             session.close()
 
@@ -465,60 +526,77 @@ def set_route(app: Flask, model, device):
             catch = session.query(Catch).filter_by(catch_id=catch_id, user_id=user_id).first()
             if not catch:
                 session.close()
-                return jsonify({'error': 'Catch not found'}), 404
+                return error_response("요청에 부합하는 정보를 찾을 수 없습니다.",
+                                      "Not Found",
+                                      404)
 
             # 데이터 유효성 검사
             try:
                 if 'weight_kg' in data:
                     weight = float(data['weight_kg']) if data['weight_kg'] is not None else None
                     if weight is not None and (weight < 0 or weight > 999.999):
-                        return jsonify({'error': 'Weight must be between 0 and 999.999 kg'}), 400
+                        return error_response("잘못된 요청입니다",
+                                              "Error : Weight must be between 0 and 999.999 kg",
+                                              400)
                     catch.weight_kg = weight
 
                 if 'length_cm' in data:
                     length = float(data['length_cm']) if data['length_cm'] is not None else None
                     if length is not None and (length < 0 or length > 999.99):
-                        return jsonify({'error': 'Length must be between 0 and 999.99 cm'}), 400
+                        return error_response("잘못된 요청입니다",
+                                              "Error : Length must be between 0 and 999.99 cm",
+                                              400)
                     catch.length_cm = length
 
                 if 'latitude' in data:
                     lat = float(data['latitude']) if data['latitude'] is not None else None
                     if lat is not None and (lat < -90 or lat > 90):
-                        return jsonify({'error': 'Latitude must be between -90 and 90'}), 400
+                        return error_response("잘못된 요청입니다",
+                                              "Error : Latitude must be between -90 and 90",
+                                              400)
                     catch.latitude = lat
 
                 if 'longitude' in data:
                     lon = float(data['longitude']) if data['longitude'] is not None else None
                     if lon is not None and (lon < -180 or lon > 180):
-                        return jsonify({'error': 'Longitude must be between -180 and 180'}), 400
+                        return error_response("잘못된 요청입니다",
+                                              "Error : Longitude must be between -180 and 180",
+                                              400)
                     catch.longitude = lon
+                    
             except ValueError:
-                return jsonify({'error': 'Invalid numeric value provided'}), 400
+                return error_response("잘못된 요청입니다",
+                                    "Error : Invalid numeric value provided",
+                                    400)
 
             # Update existing fields
             if 'detections' in data:
-                catch.exif_data = data['detections']
+                catch.detect_data = data['detections']
             if 'catch_date' in data:
                 catch.catch_date = datetime.strptime(data['catch_date'], '%Y-%m-%d')
             if 'memo' in data:
                 catch.memo = data['memo']
 
+            update_catch_info = {
+                                'id': catch.catch_id,
+                                'imageUrl': catch.photo_url,
+                                'detections': catch.detect_data,
+                                'catch_date': catch.catch_date.strftime('%Y-%m-%d'),
+                                'weight_kg': float(catch.weight_kg) if catch.weight_kg else None,
+                                'length_cm': float(catch.length_cm) if catch.length_cm else None,
+                                'latitude': float(catch.latitude) if catch.latitude else None,
+                                'longitude': float(catch.longitude) if catch.longitude else None,
+                                'memo': catch.memo,
+                            }
             session.commit()
-            return jsonify({
-                'id': catch.catch_id,
-                'imageUrl': catch.photo_url,
-                'detections': catch.exif_data,
-                'catch_date': catch.catch_date.strftime('%Y-%m-%d'),
-                'weight_kg': float(catch.weight_kg) if catch.weight_kg else None,
-                'length_cm': float(catch.length_cm) if catch.length_cm else None,
-                'latitude': float(catch.latitude) if catch.latitude else None,
-                'longitude': float(catch.longitude) if catch.longitude else None,
-                'memo': catch.memo
-            })
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    update_catch_info)
+
         except Exception as e:
             session.rollback()
-            logging.error(f"Error updating catch: {str(e)}")
-            return jsonify({'error': str(e)}), 500
+            return error_response("요청 수행 중 오류가 발생하였습니다.",
+                                  f'Internal Server Error :  {str(e)}',
+                                  500)        
         finally:
             session.close()
 
@@ -526,26 +604,33 @@ def set_route(app: Flask, model, device):
     @token_required
     def delete_catch(user_id, catch_id):
         session = Session()
-        current_user = session.query(User).filter_by(user_id=user_id).first()
-        if not current_user:
-            session.close()
-            return jsonify({'message': 'User not found'}), 404
-
-        catch = session.query(Catch).filter_by(catch_id=catch_id, user_id=current_user.user_id).first()
-        if not catch:
-            session.close()
-            return jsonify({'message': 'Catch not found'}), 404
-
+        
         try:
+            # Check if request-User exist
+            current_user = session.query(User).filter_by(user_id=user_id).first()
+            if not current_user:
+                return error_response("요청한 대상을 찾을 수 없습니다.",
+                                      "Not Found : User",
+                                      404)
+            
+            # Check if request-User exist
+            catch = session.query(Catch).filter_by(catch_id=catch_id, user_id=current_user.user_id).first()
+            if not catch:
+                return error_response("요청한 대상을 찾을 수 없습니다.",
+                                      "Not Found : Catch",
+                                      404)
+
             session.delete(catch)
             session.commit()
-            session.close()
-            return jsonify({'message': 'Catch deleted successfully'}), 200
+            return success_response("요청을 성공적으로 수행하였습니다.")
+        
         except Exception as e:
             session.rollback()
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                "Internal Server Error",
+                                500)    
+        finally:
             session.close()
-            logging.error(f"Error deleting catch: {e}")
-            return jsonify({'error': 'Error deleting catch'}), 500
 
     @app.route('/uploads/<path:filename>', methods=['GET', 'POST'])
     def uploaded_file(filename):
@@ -555,25 +640,34 @@ def set_route(app: Flask, model, device):
         response.headers['Vary'] = 'Accept-Encoding'
         return response
 
-    @app.route('/backend/get-detections', methods=['GET', 'POST'])
+    @app.route('/predict/save', methods=['GET', 'POST'])
     @token_required
     def get_detections(user_id):
         imageUrl = request.args.get('imageUrl')
         if not imageUrl:
-            return jsonify({'error': 'imageUrl is required'}), 400
-
+            return error_response("잘못된 요청입니다.",
+                                  "Bad Request : imageURL is required",
+                                  400)
         try:
             session = Session()
             catch = session.query(Catch).filter_by(photo_url=imageUrl).first()
-            session.close()
 
             if not catch:
-                return jsonify({'error': 'No catch found for the provided imageUrl'}), 404
-
-            return jsonify({'detections': catch.exif_data, 'imageUrl': catch.photo_url})
+                return error_response("잘못된 요청입니다.",
+                                      "Not Found : catch result",
+                                      404)
+            catch_result = {
+                'detections': catch.detect_data, 
+                'imageUrl': catch.photo_url
+                }
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    catch_result)
         except Exception as e:
-            logging.error(f"Error in get_detections: {e}")
-            return jsonify({'error': 'Internal server error'}), 500
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                "Internal Server Error",
+                                500)        
+        finally:
+            session.close()
 
     @app.route('/api/spots', methods=['GET'])
     def fishing_spot_all():
@@ -645,11 +739,19 @@ def set_route(app: Flask, model, device):
     @app.route('/profile/avatar', methods=['POST'])
     @token_required
     def upload_avatar(user_id):
+        # Check request result 
         if 'avatar' not in request.files:
-            return jsonify({'error': 'No file part'}), 400
+            return error_response("잘못된 요청입니다.",
+                                  "Bad Request",
+                                  400)
         file = request.files['avatar']
+        
         if file.filename == '':
-            return jsonify({'error': 'No selected file'}), 400
+            return error_response("잘못된 요청입니다.",
+                                  "Bad Request",
+                                  400)
+        
+        # After checking file, update profile images
         if file and allowed_file(file.filename):
             filename = secure_filename(f"{user_id}_{uuid.uuid4().hex}.jpg")
             file_path = os.path.join(current_app.config["AVATAR_UPLOAD_FOLDER"], filename)
@@ -660,22 +762,30 @@ def set_route(app: Flask, model, device):
                 # Query the user within the new session
                 current_user = session.query(User).filter_by(user_id=user_id).first()
                 if not current_user:
-                    return jsonify({'error': 'User not found'}), 404
+                    return error_response("요청한 정보를 찾을수 없습니다.",
+                                  "Not Found : User",
+                                  404)
 
                 # Update user's avatar URL
                 current_user.avatar = f"/uploads/avatars/{filename}"
                 session.commit()
                 avatar_url = current_user.avatar
+                
             except Exception as e:
                 session.rollback()
-                logging.error(f"Error uploading avatar: {e}")
-                return jsonify({'error': 'Avatar upload failed'}), 500
+                return error_response("요청 수행 중 오류가 발생하였습니다.",
+                                  "Internal Server Error",
+                                  500)
             finally:
                 session.close()
 
-            return jsonify({'message': 'Avatar uploaded successfully', 'avatarUrl': avatar_url}), 200
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    avatar_url,
+                                    200)
         else:
-            return jsonify({'error': 'Invalid file type'}), 400
+            return error_response("잘못된 요청입니다.",
+                                  "Bad Request : Invalid file type",
+                                  400)
         
     # 요청 지점 위치와 가장 가까운 관측소의 해양 날씨 API 호출
     @app.route('/api/weather/sea', methods=['POST'])
@@ -818,14 +928,16 @@ def set_route(app: Flask, model, device):
         session = Session()
         try:
             consent = session.query(AIConsent).filter_by(user_id=user_id).first()
-            return jsonify({
+            consent_result = {
                 'hasConsent': bool(consent and consent.consent_given),
-                'lastConsentDate': consent.consent_date.isoformat() if consent else None
-            })
+                'lastConsentDate': consent.consent_date if consent else None
+            }
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    consent_result)
         finally:
             session.close()
 
-    @app.route('/api/consent', methods=['POST', 'GET'])
+    @app.route('/api/consent', methods=['POST'])
     @token_required
     def update_consent(user_id):
         data = request.get_json()
@@ -845,10 +957,16 @@ def set_route(app: Flask, model, device):
                 )
                 session.add(consent)
             session.commit()
-            return jsonify({'message': 'Consent updated successfully'})
+            return success_response("요청이 성공적으로 수행되었습니다.")
+        
+        except Exception as e:
+            session.rollback()
+            return error_response("요청 수행 중 오류가 발생하였습니다.",
+                                  "Internal Server Error",
+                                  500)
         finally:
             session.close()
-
+            
     # 서비스 목록 API 추가
     @app.route('/api/services', methods=['GET', 'POST'])
     def get_services():
@@ -880,11 +998,11 @@ def set_route(app: Flask, model, device):
             },
             # 추가 서비스들...
         ]
-        return jsonify(services)
+        return success_response("요청이 성공적으로 처리되었습니다.",
+                                services)
 
 
-
-    @app.route('/api/posts', methods=['GET', 'POST'])
+    @app.route('/api/posts', methods=['GET'])
     @token_required
     def get_posts(user_id):
         try:
@@ -921,7 +1039,7 @@ def set_route(app: Flask, model, device):
                     'title': post.title,
                     'content': post.content,
                     'images': [get_full_url(image) for image in (post.images or [])],
-                    'created_at': post.created_at.isoformat(),
+                    'created_at': post.created_at.astimezone(timezone(timedelta(hours=9))).isoformat(),
                     'likes_count': session.query(PostLike).filter_by(post_id=post.post_id).count(),
                     'comments_count': session.query(PostComment).filter_by(post_id=post.post_id).count(),
                     'is_liked': is_liked
@@ -930,19 +1048,24 @@ def set_route(app: Flask, model, device):
                 
             total_pages = (total + per_page - 1) // per_page
             
-            return jsonify({
-                'posts': result,
-                'total': total,
-                'pages': total_pages,
-                'current_page': page
-            })
+            result_total = {
+                            'posts': result,
+                            'total': total,
+                            'pages': total_pages,
+                            'current_page': page
+                        }
+            
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    result_total)
         except Exception as e:
             logging.error(f"Error getting posts: {str(e)}")
-            return jsonify({'error': '게시물을 불러오는 중 오류가 발생했습니다.'}), 500
+            return error_response("게시물을 불러오는 중 오류가 발생했습니다.",
+                                  "Internal Server Error",
+                                  500)
         finally:
             session.close()
 
-    @app.route('/api/posts', methods=['POST', 'GET'])
+    @app.route('/api/posts', methods=['POST'])
     @token_required
     def create_post(user_id):
         session = Session()
@@ -953,7 +1076,9 @@ def set_route(app: Flask, model, device):
             images = request.files.getlist('images')
 
             if not title or not content:
-                return jsonify({'error': '제목과 내용은 필수입니다.'}), 400
+                return error_response('제목과 내용은 필수입니다.',
+                                      "Bad Request",
+                                      400)
 
             # Create new post
             new_post = CommunicationBoard(
@@ -993,34 +1118,42 @@ def set_route(app: Flask, model, device):
                     'title': new_post.title,
                     'content': new_post.content,
                     'images': [get_full_url(url) for url in new_post.images],
-                    'created_at': new_post.created_at.isoformat(),
-                    'updated_at': new_post.updated_at.isoformat(),
+                    'created_at': new_post.created_at.astimezone(timezone(timedelta(hours=9))).isoformat(),
+                    'updated_at': new_post.updated_at,
                     'likes_count': 0,
                     'comments_count': 0,
                     'is_liked': False
                 }
             }
-            return jsonify(response_data), 201
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    response_data,
+                                    201)
 
         except Exception as e:
             session.rollback()
             logging.error(f"Error creating post: {str(e)}")
-            return jsonify({'error': '게시물 작성 중 오류가 발생했습니다.'}), 500
+            return error_response('게시물 작성 중 오류가 발생했습니다.',
+                                  "Internal Server Error",
+                                  500)
         finally:
             session.close()
 
-    @app.route('/api/posts/<int:post_id>', methods=['GET', 'POST'])
+    @app.route('/api/posts/<int:post_id>', methods=['GET'])
     @token_required
     def get_post(user_id, post_id):
         session = Session()
         try:
             post = session.query(CommunicationBoard).get(post_id)
             if not post:
-                return jsonify({'error': '게시물을 찾을 수 없습니다.'}), 404
+                return error_response('게시물을 찾을 수 없습니다.',
+                                      "Not Found : Post", 
+                                      404)
 
             user = session.query(User).get(post.user_id)
             if not user:
-                return jsonify({'error': '게시물 작성자를 찾을 수 없습니다.'}), 500
+                return error_response('작성자를 찾을 수 없습니다.',
+                                      "Not Found : User", 
+                                      404)
 
             # Check if the current user has liked this post
             is_liked = session.query(PostLike).filter_by(
@@ -1049,17 +1182,20 @@ def set_route(app: Flask, model, device):
                 'title': post.title,
                 'content': post.content,
                 'images': images,
-                'created_at': post.created_at.isoformat(),
-                'updated_at': post.updated_at.isoformat() if post.updated_at else post.created_at.isoformat(),
+                'created_at': post.created_at.astimezone(timezone(timedelta(hours=9))).isoformat(),
+                'updated_at': post.updated_at if post.updated_at else post.created_at.astimezone(timezone(timedelta(hours=9))).isoformat(),
                 'likes_count': likes_count,
                 'comments_count': comments_count,
                 'is_liked': is_liked
             }
 
-            return jsonify(response_data)
+            return success_response("요청을 성공적으로 수행하였습니다.",
+                                    response_data)
         except Exception as e:
             logging.error(f"Error getting post {post_id}: {str(e)}")
-            return jsonify({'error': '게시물을 불러오는 중 오류가 발생했습니다.'}), 500
+            return error_response('게시물을 불러오는 중 오류가 발생했습니다.',
+                                'Internal Server Error',
+                                500)
         finally:
             session.close()
 
@@ -1070,7 +1206,9 @@ def set_route(app: Flask, model, device):
         try:
             post = session.query(CommunicationBoard).filter_by(post_id=post_id, user_id=user_id).first()
             if not post:
-                return jsonify({'error': '게시물을 찾을 수 없거나 수정 권한이 없습니다.'}), 404
+                return error_response('게시물을 찾을 수 없거나 수정 권한이 없습니다.',
+                                      "Not Found",
+                                      404)
 
             # 현재 이미지 목록 백업
             current_images = post.images.copy() if post.images else []
@@ -1124,15 +1262,18 @@ def set_route(app: Flask, model, device):
                     'title': post.title,
                     'content': post.content,
                     'images': [get_full_url(url) for url in post.images],
-                    'updated_at': post.updated_at.isoformat()
+                    'updated_at': post.updated_at,
                 }
             }
-            return jsonify(response_data)
+            return success_response("요청을 성공적으로 수행하였습니다",
+                                    response_data)
 
         except Exception as e:
             session.rollback()
             logging.error(f"Error updating post {post_id}: {str(e)}")
-            return jsonify({'error': '게시물 수정 중 오류가 발생했습니다.'}), 500
+            return error_response('게시물 수정 중 오류가 발생했습니다.',
+                                  'Internal Server Error',
+                                  500)
         finally:
             session.close()
 
@@ -1143,7 +1284,9 @@ def set_route(app: Flask, model, device):
         try:
             post = session.query(CommunicationBoard).filter_by(post_id=post_id, user_id=user_id).first()
             if not post:
-                return jsonify({'error': '게시물을 찾을 수 없거나 삭제 권한이 없습니다.'}), 404
+                return error_response('게시물을 찾을 수 없거나 삭제 권한이 없습니다.',
+                                      'Not Found',
+                                      404)
 
             # Delete all associated images
             if post.images:
@@ -1155,11 +1298,13 @@ def set_route(app: Flask, model, device):
             session.delete(post)
             session.commit()
 
-            return jsonify({'message': '게시물이 성공적으로 삭제되었습니다.'})
+            return success_response('게시물이 성공적으로 삭제되었습니다.')
         except Exception as e:
             session.rollback()
             logging.error(f"Error deleting post: {str(e)}")
-            return jsonify({'error': '게시물 삭제 중 오류가 발생했습니다.'}), 500
+            return error_response('게시물 삭제 중 오류가 발생했습니다.',
+                                  'Internal Server Error',
+                                  500)
         finally:
             session.close()
 
@@ -1171,7 +1316,9 @@ def set_route(app: Flask, model, device):
             # Check if post exists
             post = session.query(CommunicationBoard).get(post_id)
             if not post:
-                return jsonify({'error': '게시물을 찾을 수 없습니다.'}), 404
+                return error_response('게시물을 찾을 수 없습니다.',
+                                    'Not Found',
+                                    404)
 
             # Check if user already liked the post
             existing_like = session.query(PostLike).filter_by(
@@ -1184,31 +1331,33 @@ def set_route(app: Flask, model, device):
                 session.delete(existing_like)
                 session.commit()
                 likes_count = session.query(PostLike).filter_by(post_id=post_id).count()
-                return jsonify({
-                    'message': '좋아요가 취소되었습니다.',
-                    'is_liked': False,
-                    'likes_count': likes_count
-                })
+                return success_response('좋아요가 취소되었습니다.',
+                                        data = {'is_liked': False,
+                                                'likes_count': likes_count,
+                                                }
+                                        )
             else:
                 # Like
                 new_like = PostLike(post_id=post_id, user_id=user_id)
                 session.add(new_like)
                 session.commit()
                 likes_count = session.query(PostLike).filter_by(post_id=post_id).count()
-                return jsonify({
-                    'message': '좋아요가 추가되었습니다.',
-                    'is_liked': True,
-                    'likes_count': likes_count
-                })
+                return success_response('좋아요가 추가되었습니다.',
+                                        data = {'is_liked': True,
+                                                'likes_count': likes_count,
+                                                }
+                                        )
 
         except Exception as e:
             session.rollback()
             logging.error(f"Error toggling like for post {post_id}: {str(e)}")
-            return jsonify({'error': '좋아요 처리 중 오류가 발생했습니다.'}), 500
+            return error_response('요청 진행 중 오류가 발생했습니다.',
+                                  'Internal Server Error',
+                                  500)
         finally:
             session.close()
 
-    @app.route('/api/posts/<int:post_id>/comments', methods=['GET', 'POST'])
+    @app.route('/api/posts/<int:post_id>/comments', methods=['GET'])
     @token_required
     def get_comments(user_id, post_id):
         session = Session()
@@ -1216,16 +1365,17 @@ def set_route(app: Flask, model, device):
             # Check if post exists
             post = session.query(CommunicationBoard).get(post_id)
             if not post:
-                return jsonify({'error': '게시물을 찾을 수 없습니다.'}), 404
+                return error_response('게시물을 찾을 수 없습니다.', 
+                                      'Not Found',
+                                      404)
 
             # Get comments with user information
             comments = session.query(PostComment, User).join(
-                User, PostComment.user_id == User.user_id
-            ).filter(
-                PostComment.post_id == post_id
-            ).order_by(
-                PostComment.created_at.desc()
-            ).all()
+                                        User, PostComment.user_id == User.user_id).filter(
+                                            PostComment.post_id == post_id
+                                        ).order_by(
+                                            PostComment.created_at.desc()
+                                        ).all()
 
             comments_data = [{
                 'comment_id': comment.comment_id,
@@ -1233,18 +1383,21 @@ def set_route(app: Flask, model, device):
                 'username': user.username,
                 'avatar': get_full_url(user.avatar),
                 'content': comment.content,
-                'created_at': comment.created_at.isoformat()
+                'created_at': comment.created_at.astimezone(timezone(timedelta(hours=9))).isoformat(),
             } for comment, user in comments]
 
-            return jsonify({'comments': comments_data})
+            return success_response("요청을 성공적으로 수행하였습니다.",
+                                    comments_data)
 
         except Exception as e:
             logging.error(f"Error getting comments for post {post_id}: {str(e)}")
-            return jsonify({'error': '댓글을 불러오는 중 오류가 발생했습니다.'}), 500
+            return error_response('댓글을 불러오는 중 오류가 발생했습니다.',
+                                  'Internal Server Error',
+                                  500)
         finally:
             session.close()
 
-    @app.route('/api/posts/<int:post_id>/comments', methods=['POST', 'GET'])
+    @app.route('/api/posts/<int:post_id>/comments', methods=['POST'])
     @token_required
     def create_comment(user_id, post_id):
         session = Session()
@@ -1252,11 +1405,15 @@ def set_route(app: Flask, model, device):
             # Check if post exists
             post = session.query(CommunicationBoard).get(post_id)
             if not post:
-                return jsonify({'error': '게시물을 찾을 수 없습니다.'}), 404
+                return error_response('댓글을 작성하고자 하는 게시물을 찾을 수 없습니다.', 
+                                      'Not Found',
+                                      404)
 
             data = request.get_json()
             if not data or not data.get('content'):
-                return jsonify({'error': '댓글 내용이 필요합니다.'}), 400
+                return error_response('댓글 내용을 작성해주세요.', 
+                                      'Bad Request',
+                                      400)
 
             # Create new comment
             new_comment = PostComment(
@@ -1276,22 +1433,22 @@ def set_route(app: Flask, model, device):
                 'username': user.username,
                 'avatar': get_full_url(user.avatar),
                 'content': new_comment.content,
-                'created_at': new_comment.created_at.isoformat()
+                'created_at': new_comment.created_at.astimezone(timezone(timedelta(hours=9))).isoformat(),
             }
 
-            return jsonify({
-                'message': '댓글이 성공적으로 작성되었습니다.',
-                'comment': comment_data
-            })
+            return success_response('댓글이 성공적으로 작성되었습니다.',
+                                    comment_data)
 
         except Exception as e:
             session.rollback()
             logging.error(f"Error creating comment for post {post_id}: {str(e)}")
-            return jsonify({'error': '댓글 작성 중 오류가 발생했습니다.'}), 500
+            return error_response('댓글을 작성 중 오류가 발생했습니다.',
+                                  'Internal Server Error',
+                                  500)
         finally:
             session.close()
 
-    @app.route('/api/posts/top', methods=['GET', 'POST'])
+    @app.route('/api/posts/top', methods=['GET'])
     def get_top_posts():
         session = Session()
         try:
@@ -1317,34 +1474,26 @@ def set_route(app: Flask, model, device):
                     'post_id': post.post_id,
                     'user_id': post.user_id,
                     'username': user.username if user else 'Unknown',
-                    'avatar': get_full_url(user.avatar) if user else None,
+                    # 'avatar': get_full_url(user.avatar) if user else None,
                     'title': post.title,
                     'content': post.content,
                     'images': [get_full_url(image) for image in (post.images or [])],
-                    'created_at': post.created_at.isoformat(),
+                    'created_at': post.created_at.astimezone(timezone(timedelta(hours=9))).isoformat(),
                     'likes_count': session.query(PostLike).filter_by(post_id=post.post_id).count(),
                     'comments_count': session.query(PostComment).filter_by(post_id=post.post_id).count(),
                 }
                 result.append(post_data)
-
-            return jsonify(result)
+                
+            return success_response("요청을 성공적으로 수행하였습니다",
+                                    result)
         except Exception as e:
             logging.error(f"Error getting top posts: {str(e)}")
-            return jsonify({'error': 'Error fetching top posts'}), 500
+            return error_response('게시물 호출 중 오류가 발생하였습니다.'
+                                  'Internal Server Error',
+                                  500)
         finally:
             session.close()
             
-    # Flask 모든 응답에 대해 후처리 수행하도록 설정
-    @app.after_request
-    def add_header(response):
-        """
-        Cache setting for upload directory (1 year)
-        """
-        if request.path.startswith('/uploads/'):
-            response.cache_control.max_age = 31536000  
-            response.cache_control.public = True
-        return response
-    
     # Flask 모든 응답에 대해 후처리 수행하도록 설정
     @app.after_request
     def add_header(response):

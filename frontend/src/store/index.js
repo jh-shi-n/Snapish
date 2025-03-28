@@ -241,7 +241,7 @@ export default createStore({
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-        const profileResponse = response.data
+        const profileResponse = response.data.data
         commit('setUser', profileResponse);
       } catch (error) {
         console.error('Error fetching user profile:', error);
@@ -271,7 +271,7 @@ export default createStore({
               Authorization: `Bearer ${state.token}`,
             },
           });
-          const formattedCatches = response.data.map(item => ({
+          const formattedCatches = response.data.data.map(item => ({
             ...item,
             catch_date: item.catch_date || new Date().toISOString().split('T')[0],
             weight_kg: item.weight_kg || null,
@@ -302,8 +302,7 @@ export default createStore({
           throw new Error('Catch ID is required');
         }
         const token = localStorage.getItem("token");
-        const response = await axios.put(
-          `/catches/${updatedCatch.id}`,
+        const response = await axios.put(`/catches/${updatedCatch.id}`,
           updatedCatch,
           {
             headers: {
@@ -312,8 +311,8 @@ export default createStore({
             }
           }
         );
-        commit("UPDATE_CATCH", response.data);
-        return response.data;
+        commit("UPDATE_CATCH", response.data.data);
+        return response.data.data;
       } catch (error) {
         console.error(
           "Update catch error:",
@@ -347,7 +346,7 @@ export default createStore({
     async fetchServices({ commit }) {
       try {
         const response = await axios.get('/api/services');
-        commit('SET_SERVICES', response.data);
+        commit('SET_SERVICES', response.data.data);
       } catch (error) {
         console.error('Error fetching services:', error);
         // 기본 서비스 목록 사용
@@ -396,15 +395,14 @@ export default createStore({
     },
     async checkConsent({ commit }) {
       try {
-        console.log('Checking consent from backend...');
-        const response = await axios.get('/api/consent/check', {
+          const response = await axios.get('/api/consent/check', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-        console.log('Consent response:', response.data);
-        commit('SET_CONSENT', response.data);
-        return response.data;
+        console.log(response.data)
+        commit('SET_CONSENT', response.data.data);
+        return response.data.data;
       } catch (error) {
         console.error('Error checking consent:', error);
         throw error;

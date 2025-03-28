@@ -8,7 +8,7 @@ def get_full_url(url):
         return None
     if url.startswith('http'):
         return url
-    return f"{baseUrl}{url}"
+    return os.path.join(f"{baseUrl}:5000", url)
 
 def custom_sort_key(spot):
     name = spot['name'].lstrip()

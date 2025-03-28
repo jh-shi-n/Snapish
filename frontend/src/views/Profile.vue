@@ -160,7 +160,6 @@ const uploadAvatar = async (event) => {
             return;
         }
 
-
         const formData = new FormData();
         formData.append('avatar', file);
         try {
@@ -171,15 +170,15 @@ const uploadAvatar = async (event) => {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 },
             });
-
-            if (response.data.avatarUrl) {
+            
+            if (response.data.data) {
                 await store.dispatch('fetchUserProfile');
                 alert('아바타가 성공적으로 업데이트되었습니다.');
             }
         } catch (error) {
             console.error('Error uploading avatar:', error);
             alert('아바타 업로드에 실패했습니다.');
-        }
+        } 
     }
 };
 

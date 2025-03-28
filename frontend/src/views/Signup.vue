@@ -51,7 +51,7 @@ const handleSignup = async () => {
         router.push('/login');
     } catch (error) {
         if (error.response.status === 409) {
-            alert('회원가입 실패: 이미 사용 중인 아이디나 이메일입니다.');
+            alert(`회원가입 실패: ${ error.response.data.message }`);
             console.error('회원가입 오류:', error);
         } else if (error.response.status === 400) {
             alert('회원가입 실패: 입력된 정보가 올바르지 않습니다.');
