@@ -91,7 +91,7 @@ class Catch(Base):
     catch_date = Column(DateTime, default=datetime.utcnow)
     fish_size_cm = Column(DECIMAL(5, 2))
     photo_url = Column(String(255))
-    exif_data = Column(JSON)
+    detect_data = Column(JSON)
     weight_kg = Column(DECIMAL(10, 3), nullable=True)  # 무게(kg)
     length_cm = Column(DECIMAL(10, 2), nullable=True)  # 길이(cm)
     latitude = Column(DECIMAL(10, 8), nullable=True)  # 위도
