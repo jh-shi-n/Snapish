@@ -275,7 +275,7 @@ def set_route(app: Flask, model, device):
                         'assistant_request_id': assistant_request_id
                     }
                     return success_response("요청이 성공적으로 처리되었습니다",
-                                                response_data)
+                                            response_data)
                     
                 else:
                     # Update existing catch
@@ -294,7 +294,7 @@ def set_route(app: Flask, model, device):
                                                 response_data)
                     else:
                         return error_response("요청한 정보를 찾을 수 없습니다.",
-                                              "Not found : catch",
+                                              "Not found : existed catch_id",
                                               404)
             else:
                 raise Exception("토큰이 필요합니다.", 
@@ -477,35 +477,43 @@ def set_route(app: Flask, model, device):
 
         except Exception as e:
             session.rollback()
-            return jsonify({'error': str(e)}), 500
+            return error_response("요청 진행 중 오류가 발생하였습니다",
+                                  "Internal Server Error",
+                                  500)
         finally:
             session.close()
 
-    @app.route('/catches', methods=['GET', 'POST'])
+    @app.route('/catches', methods=['GET'])
     @token_required
     def get_catches(user_id):
         session = Session()
         try:
             current_user = session.query(User).filter_by(user_id=user_id).first()
             if not current_user:
-                return jsonify({'message': 'User not found'}), 404
-
+                return error_response("요청한 유저를 찾을 수 없습니다.",
+                                  "User not found",
+                                  404)
+                
             catches = session.query(Catch).filter_by(user_id=current_user.user_id).all()
+            catches_json = [{'id': catch.catch_id,
+                            'imageUrl': catch.photo_url,
+                            'detections': catch.detect_data,
+                            'catch_date': catch.catch_date.strftime('%Y-%m-%d'),
+                            'weight_kg': float(catch.weight_kg) if catch.weight_kg else None,
+                            'length_cm': float(catch.length_cm) if catch.length_cm else None,
+                            'latitude': float(catch.latitude) if catch.latitude else None,
+                            'longitude': float(catch.longitude) if catch.longitude else None,
+                            'memo': catch.memo
+                            } for catch in catches]
             
-            # 모든 필요한 데이터를 포함하여 반환
-            return jsonify([{
-                'id': catch.catch_id,
-                'imageUrl': catch.photo_url,
-                'detections': catch.detect_data,
-                'catch_date': catch.catch_date.strftime('%Y-%m-%d'),
-                'weight_kg': float(catch.weight_kg) if catch.weight_kg else None,
-                'length_cm': float(catch.length_cm) if catch.length_cm else None,
-                'latitude': float(catch.latitude) if catch.latitude else None,
-                'longitude': float(catch.longitude) if catch.longitude else None,
-                'memo': catch.memo
-            } for catch in catches])
+            # Fetch catch result that filtered by user_id
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    catches_json)
+            
         except Exception as e:
-            return jsonify({'error': str(e)}), 500
+            return error_response("요청 진행 중 오류가 발생하였습니다",
+                                  "Internal Server Error",
+                                  500)        
         finally:
             session.close()
 
@@ -518,35 +526,48 @@ def set_route(app: Flask, model, device):
             catch = session.query(Catch).filter_by(catch_id=catch_id, user_id=user_id).first()
             if not catch:
                 session.close()
-                return jsonify({'error': 'Catch not found'}), 404
+                return error_response("요청에 부합하는 정보를 찾을 수 없습니다.",
+                                      "Not Found",
+                                      404)
 
             # 데이터 유효성 검사
             try:
                 if 'weight_kg' in data:
                     weight = float(data['weight_kg']) if data['weight_kg'] is not None else None
                     if weight is not None and (weight < 0 or weight > 999.999):
-                        return jsonify({'error': 'Weight must be between 0 and 999.999 kg'}), 400
+                        return error_response("잘못된 요청입니다",
+                                              "Error : Weight must be between 0 and 999.999 kg",
+                                              400)
                     catch.weight_kg = weight
 
                 if 'length_cm' in data:
                     length = float(data['length_cm']) if data['length_cm'] is not None else None
                     if length is not None and (length < 0 or length > 999.99):
-                        return jsonify({'error': 'Length must be between 0 and 999.99 cm'}), 400
+                        return error_response("잘못된 요청입니다",
+                                              "Error : Length must be between 0 and 999.99 cm",
+                                              400)
                     catch.length_cm = length
 
                 if 'latitude' in data:
                     lat = float(data['latitude']) if data['latitude'] is not None else None
                     if lat is not None and (lat < -90 or lat > 90):
-                        return jsonify({'error': 'Latitude must be between -90 and 90'}), 400
+                        return error_response("잘못된 요청입니다",
+                                              "Error : Latitude must be between -90 and 90",
+                                              400)
                     catch.latitude = lat
 
                 if 'longitude' in data:
                     lon = float(data['longitude']) if data['longitude'] is not None else None
                     if lon is not None and (lon < -180 or lon > 180):
-                        return jsonify({'error': 'Longitude must be between -180 and 180'}), 400
+                        return error_response("잘못된 요청입니다",
+                                              "Error : Longitude must be between -180 and 180",
+                                              400)
                     catch.longitude = lon
+                    
             except ValueError:
-                return jsonify({'error': 'Invalid numeric value provided'}), 400
+                return error_response("잘못된 요청입니다",
+                                    "Error : Invalid numeric value provided",
+                                    400)
 
             # Update existing fields
             if 'detections' in data:
@@ -556,22 +577,26 @@ def set_route(app: Flask, model, device):
             if 'memo' in data:
                 catch.memo = data['memo']
 
+            update_catch_info = {
+                                'id': catch.catch_id,
+                                'imageUrl': catch.photo_url,
+                                'detections': catch.detect_data,
+                                'catch_date': catch.catch_date.strftime('%Y-%m-%d'),
+                                'weight_kg': float(catch.weight_kg) if catch.weight_kg else None,
+                                'length_cm': float(catch.length_cm) if catch.length_cm else None,
+                                'latitude': float(catch.latitude) if catch.latitude else None,
+                                'longitude': float(catch.longitude) if catch.longitude else None,
+                                'memo': catch.memo,
+                            }
             session.commit()
-            return jsonify({
-                'id': catch.catch_id,
-                'imageUrl': catch.photo_url,
-                'detections': catch.detect_data,
-                'catch_date': catch.catch_date.strftime('%Y-%m-%d'),
-                'weight_kg': float(catch.weight_kg) if catch.weight_kg else None,
-                'length_cm': float(catch.length_cm) if catch.length_cm else None,
-                'latitude': float(catch.latitude) if catch.latitude else None,
-                'longitude': float(catch.longitude) if catch.longitude else None,
-                'memo': catch.memo
-            })
+            return success_response("요청이 성공적으로 처리되었습니다.",
+                                    update_catch_info)
+
         except Exception as e:
             session.rollback()
-            logging.error(f"Error updating catch: {str(e)}")
-            return jsonify({'error': str(e)}), 500
+            return error_response("요청 수행 중 오류가 발생하였습니다.",
+                                  f'Internal Server Error :  {str(e)}',
+                                  500)        
         finally:
             session.close()
 
@@ -579,26 +604,33 @@ def set_route(app: Flask, model, device):
     @token_required
     def delete_catch(user_id, catch_id):
         session = Session()
-        current_user = session.query(User).filter_by(user_id=user_id).first()
-        if not current_user:
-            session.close()
-            return jsonify({'message': 'User not found'}), 404
-
-        catch = session.query(Catch).filter_by(catch_id=catch_id, user_id=current_user.user_id).first()
-        if not catch:
-            session.close()
-            return jsonify({'message': 'Catch not found'}), 404
-
+        
         try:
+            # Check if request-User exist
+            current_user = session.query(User).filter_by(user_id=user_id).first()
+            if not current_user:
+                return error_response("요청한 대상을 찾을 수 없습니다.",
+                                      "Not Found : User",
+                                      404)
+            
+            # Check if request-User exist
+            catch = session.query(Catch).filter_by(catch_id=catch_id, user_id=current_user.user_id).first()
+            if not catch:
+                return error_response("요청한 대상을 찾을 수 없습니다.",
+                                      "Not Found : Catch",
+                                      404)
+
             session.delete(catch)
             session.commit()
-            session.close()
-            return jsonify({'message': 'Catch deleted successfully'}), 200
+            return success_response("요청을 성공적으로 수행하였습니다.")
+        
         except Exception as e:
             session.rollback()
+            return error_response("요청 진행 중 오류가 발생하였습니다.",
+                                "Internal Server Error",
+                                500)    
+        finally:
             session.close()
-            logging.error(f"Error deleting catch: {e}")
-            return jsonify({'error': 'Error deleting catch'}), 500
 
     @app.route('/uploads/<path:filename>', methods=['GET', 'POST'])
     def uploaded_file(filename):
