@@ -191,12 +191,23 @@ export default {
 
     const submitPost = async () => {
       if (isSubmitting.value) return
+
+      // Check textarea conditions
       if (!isContentLengthValid.value || content.value.length > maxContentLength) {
         alert('내용은 500자를 초과할 수 없습니다.')
         return
       }
       if (!isTitleLengthValid.value || title.value.length > maxTitleLength) {
         alert('제목은 50자를 초과할 수 없습니다.')
+        return
+      }
+
+      if (!isTitleLengthValid.value || title.value.length <= 0) {
+        alert('제목을 작성하셔야합니다.')
+        return
+      }
+      if (!isContentLengthValid.value || content.value.length <= 0) {
+        alert('내용을 작성하셔야합니다.')
         return
       }
 
