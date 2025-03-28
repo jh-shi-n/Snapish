@@ -1,6 +1,7 @@
 # config.py
 from dotenv import load_dotenv
 import os
+import redis
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -12,6 +13,13 @@ class BaseConfig(object):
     UPLOAD_FOLDER = 'uploads'
     AVATAR_UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, 'avatars')
     
+    # Client-allowed extension setup
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+    
+    # Os environment
+    SECRET_KEY = os.getenv('SECRET_KEY')
+    DATABASE_URL = os.getenv('DATABASE_URL')
+
     # Initialize directory : upload folder
     @staticmethod
     def init_app(app):
@@ -20,14 +28,7 @@ class BaseConfig(object):
         """
         os.makedirs(BaseConfig.UPLOAD_FOLDER, exist_ok=True)
         os.makedirs(BaseConfig.AVATAR_UPLOAD_FOLDER, exist_ok=True)
-    
-    # Client-allowed extension setup
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-    
-    # Os environment
-    SECRET_KEY = os.getenv('SECRET_KEY')
-    DATABASE_URL = os.getenv('DATABASE_URL')
-    
+        
     # AI model config
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
     CONF_SCORE = 0.5

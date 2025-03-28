@@ -74,19 +74,6 @@ const currentDate = computed(() => {
   return new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '-').replace('.', '')
 })
 
-const fetchTodayMulddae = () => {
-  const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '-').replace('.', '')
-  const cachedDate = localStorage.getItem("mulddaeDate")
-  
-  // 캐시된 데이터가 없거나 날짜가 다른 경우에만 fetch 실행
-  if (!cachedDate || cachedDate !== today) {
-    console.log("info: No cached data found or date mismatch, fetching new data")
-    store.dispatch('fetchMulddae', today)
-  } else {
-    console.log("info: Using cached mulddae data")
-  }
-}
-
 const getMoonIcon = (phase) => {
   if (phase === 0) return moonPhaseIcons["new"]
   if (phase > 0 && phase < 0.25) return moonPhaseIcons["waxing_crescent"]
@@ -116,8 +103,7 @@ const refreshCard = async () => {
     console.log("Refresh Mulddae Widget: Cached mulddae data cleared.")
     localStorage.removeItem("mulddae")
     localStorage.removeItem("mulddaeDate")
-    await store.dispatch("fetchMulddae")
-    console.log("success: Mulddae data refreshed.")
+    await store.dispatch("fetchMulddaeInfo")
   } catch (error) {
     console.error("Error refreshing mulddae data:", error)
   }
@@ -129,7 +115,6 @@ function updateLocation() {
 }
 
 onMounted(() => {
-  fetchTodayMulddae()
   updateLocation()
 })
 </script>

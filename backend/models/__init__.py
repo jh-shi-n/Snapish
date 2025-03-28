@@ -16,3 +16,4 @@ from .model import TournamentParticipant
 from .model import Ranking
 from .model import TidalObservation
 from .model import FishingPlace
+from .model import Session

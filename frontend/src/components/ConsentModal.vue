@@ -61,6 +61,7 @@ const accept = async () => {
     await store.dispatch('updateConsent', true);
     emit('consent', true);
     emit('close');
+    console.log("수집여부 : 동의")
   } catch (error) {
     console.error('Error updating consent:', error);
   }
@@ -69,6 +70,7 @@ const accept = async () => {
 const decline = () => {
   emit('consent', false);
   emit('close');
+  console.log("수집여부 : 미동의")
   router.push('/'); // 메인 페이지로 이동
 };
 </script> 

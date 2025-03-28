@@ -325,7 +325,8 @@ export default {
             'Authorization': `Bearer ${store.state.token}`
           }
         })
-        posts.value = response.data.posts.map(post => ({
+
+        posts.value = response.data.data.posts.map(post => ({
           ...post,
           showComments: false,
           showOptions: false,
@@ -371,8 +372,8 @@ export default {
         })
         
         // Update post data
-        post.is_liked = response.data.is_liked
-        post.likes_count = response.data.likes_count
+        post.is_liked = response.data.data.is_liked
+        post.likes_count = response.data.data.likes_count
       } catch (error) {
         console.error('Error toggling like:', error)
         alert('좋아요 처리 중 오류가 발생했습니다.')
@@ -386,7 +387,7 @@ export default {
             'Authorization': `Bearer ${store.state.token}`
           }
         })
-        post.comments = response.data.comments
+        post.comments = response.data.data
         post.showComments = !post.showComments
       } catch (error) {
         console.error('Error fetching comments:', error)
@@ -413,7 +414,7 @@ export default {
             'Authorization': `Bearer ${store.state.token}`
           }
         })
-        post.comments = response.data.comments
+        post.comments = response.data.data
         post.comments_count += 1
         newComments.value[post.post_id] = ''
       } catch (error) {

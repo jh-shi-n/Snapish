@@ -3,15 +3,11 @@ from PIL import Image
 from io import BytesIO
 import os
 
-baseUrl = os.getenv('BASE_URL')
-
 def allowed_file(filename):
     """
     Check if the file has one of the allowed extensions.
     """
-    
-    # allowed_ext = current_app.config["ALLOWED_EXTENSIONS"]
-    # print(allowed_ext)
+
     files = '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config["ALLOWED_EXTENSIONS"]
 
     return files
@@ -32,12 +28,5 @@ def optimize_image(image, max_size=1024):
     buffer = BytesIO()
     image.save(buffer, format='JPEG', quality=85, optimize=True)
     buffer.seek(0)
-    return buffer
-
-
-def get_full_url(url):
-    if not url:
-        return None
-    if url.startswith('http'):
-        return url
-    return f"{baseUrl}{url}"
+    
+    return Image.open(buffer)

@@ -53,33 +53,33 @@ const router = useRouter();
 const store = useStore();  // Add this line
 
 const errorTypes = {
-    no_detection: {
+    204: {
         message: '물고기를 감지할 수 없습니다.',
         description: '물고기가 포함된 사진을 다시 업로드 해주세요.'
     },
-    low_confidence: {
-        message: '물고기를 정확하게 인식할 수 없습니다.',
-        description: '더 선명한 사진으로 다시 시도해주세요.'
+    422 : {
+        message: '물고기를 인식할 수 없습니다.',
+        description: '다른 사진으로 다시 시도해주세요.'
     }, 
-    invalid_file_name: {
-        message: '파일명 형식 오류',
-        description: 'PNG, JPG, JPEG 형식의 이미지만 업로드 가능합니다.'
-    },
-    invalid_file_type: {
+    415 : {
         message: '지원하지 않는 파일 형식입니다.',
         description: 'PNG, JPG, JPEG 형식의 이미지만 업로드 가능합니다.'
     },
-    invalid_file_open: {
+    400: {
         message: '업로드 이미지를 열지 못했습니다.',
         description: '파일을 열 수 없습니다.'
     },
-    invalid_image_formatting_error: {
+    405 : {
         message: '지원하지 않는 파일 형식입니다.',
-        description: '파일이 변환 중 오류가 발생했습니다.'
+        description: '파일 이름이 올바르지 않습니다.'
     },
     analyze_failed: {
         message: '분석 작업 중 오류가 발생하였습니다.',
         description: '분석 작업 중 오류가 발생하였습니다.'
+    },
+    server_error: {
+        message: '분석 작업 중 오류가 발생하였습니다.',
+        description: '서버 접속에 실패하였습니다.'
     }
 };
 

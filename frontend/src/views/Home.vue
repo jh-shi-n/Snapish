@@ -11,7 +11,7 @@
 
         <!-- Today's tide section -->
         <section class="mb-2 pt-6">
-          <router-link to="/map-location-service"
+          <router-link to="/spots"
             class="group flex justify-between items-center p-4 bg-blue-50 hover:bg-blue-100 rounded-xl transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500">
             <h2 class="text-xl font-bold text-blue-800 group-hover:text-blue-900 transition duration-300">오늘의 낚시 스팟</h2>
             <ChevronRightIcon class="w-6 h-6 text-blue-500 group-hover:text-blue-600 transition duration-300" />
@@ -145,7 +145,7 @@ const isAuthenticated = computed(() => store.getters.isAuthenticated);
 
 const getImageUrl = (url) => {
   if (!url) return DEFAULT_IMAGE;
-  return url.startsWith('http') ? url : `${BACKEND_BASE_URL}/uploads/${url}`;
+  return url.startsWith('http') ? url : `${BACKEND_BASE_URL}/${url}`;
 };
 
 onMounted(async () => {
@@ -157,7 +157,7 @@ onMounted(async () => {
       startAutoSlide();
     }
     const response = await axios.get('/api/posts/top');
-    hotIssues.value = response.data;
+    hotIssues.value = response.data.data;
   } catch (error) {
     console.error('Error:', error);
   } finally {

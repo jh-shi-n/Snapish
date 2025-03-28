@@ -40,7 +40,7 @@ export default {
 
     const handleLogout = async () => {
       await store.dispatch('logout')
-      router.push('/login')
+      router.push('/')
     }
 
     const handleLogin = () => {

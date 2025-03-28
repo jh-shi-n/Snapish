@@ -36,6 +36,7 @@ def assistant_talk_get(target_thread_id, target_run_id):
                 run_id=target_run_id
             )
             if run.status == "completed":
+                print("complete")
                 break
             elif run.status in ["failed", "error"]:
                 raise Exception(f"Run failed with status: {run.status}")
@@ -61,5 +62,8 @@ def assistant_talk_get(target_thread_id, target_run_id):
                     formatted_text.append(cleaned_text.replace('. ', '.\n'))
     
     formatted_text = "\n".join(formatted_text)
+    if formatted_text.replace(" ", "").strip():
+        return formatted_text
+    else:
+        return None
     
-    return formatted_text

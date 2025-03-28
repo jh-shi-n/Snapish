@@ -220,9 +220,10 @@ import { useRoute, useRouter } from 'vue-router';
 import html2canvas from 'html2canvas';
 import { ChevronLeftIcon, LogOutIcon, Share2Icon, InfoIcon, Edit, X } from 'lucide-vue-next';
 import { useStore } from 'vuex';
+import { fetchchatgptAssist } from "../services/predictService.js"
+import axios from "axios"
 import ConsentModal from '../components/ConsentModal.vue';
 import EditFishModal from '../components/EditFishModal.vue';
-import axios from 'axios';
 
 const store = useStore();
 const route = useRoute();
@@ -251,7 +252,6 @@ const assistant_request_id = computed(() => {
   const assistantIdFromQuery = route.query.assistant_request_id;
   return assistantIdFromQuery || null;
 });
-// const scientificName = ref('ChatGPT로 생성된 학명'); // 필요에 따라 학명 정보를 추가하세요.
 const fishDescription = ref('ChatGPT로 생성된 물고기 설명'); // 필요에 따라 물고기 설명을 추가하세요.
 // Define backend base URL
 const baseUrl = process.env.VUE_APP_BASE_URL;
@@ -265,22 +265,22 @@ const BACKEND_BASE_URL = baseUrl;
 //   return '알 수 없는 물고기';
 // });
 
-// ChatGPT 응답을 가져오는 메서드 수정
+// ChatGPT Assistant Response 
 const fetchAssistantResponse = async (assistantRequestId = null) => {
-  // 파라미터가 없으면 computed 값 사용
+  // 파라미터가 없으면 null 값 활용
   const currentAssistantId = assistantRequestId || assistant_request_id.value;
-  
-  if (!currentAssistantId) return;
-  
+  if (!currentAssistantId) 
+    return;
+
   isDescriptionLoading.value = true;
   try {
     const [thread_id, run_id] = currentAssistantId;
-    const response = await axios.get(`${baseUrl}/backend/chat/${thread_id}/${run_id}`);
-    console.log('ChatGPT Response:', response.data);
-    if (response.data.status === 'Success') {
-      fishDescription.value = response.data.data || '잠시만 기다려 주세요';
+    const response = await fetchchatgptAssist(thread_id, run_id);
+
+    if (response) {
+      fishDescription.value = response || '생성 중 오류가 발생했어요';
     } else {
-      console.error('Error in ChatGPT response:', response.data.status);
+      console.error('Error in ChatGPT response:', response.status);
       fishDescription.value = '현재 서비스를 이용할 수 없어요';
     }
   } catch (error) {
@@ -298,7 +298,7 @@ const fetchDetections = async () => {
   try {
     const token = localStorage.getItem('token');
     if (token && route.query.imageUrl) {
-      const response = await axios.get(`${baseUrl}/backend/get-detections`, {
+      const response = await axios.get(`${baseUrl}/predict/save`, {
         params: {
           imageUrl: route.query.imageUrl,
         },
@@ -306,12 +306,9 @@ const fetchDetections = async () => {
           'Authorization': `Bearer ${token}`,
         },
       });
-      parsedDetections.value = response.data.detections;
-      imageUrl.value = response.data.imageUrl;
-    } else {
-      parsedDetections.value = JSON.parse(decodeURIComponent(route.query.detections));
-      imageBase64.value = route.query.imageBase64;
-    }
+      parsedDetections.value = response.data.data.detections;
+      imageUrl.value = response.data.data.imageUrl;
+    } 
     errorMessage.value = '';
   } catch (e) {
     console.error('Failed to fetch detections:', e);

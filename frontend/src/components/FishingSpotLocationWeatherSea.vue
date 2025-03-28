@@ -73,7 +73,7 @@
 </template>
 
 <script>
-import { fetchSeaPostidByCoordinates } from '../services/locationService';
+import { fetchSeaPostidByCoordinates } from '../services/weatherService.js';
 
 export default {
   props: {

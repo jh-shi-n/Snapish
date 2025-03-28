@@ -5,9 +5,6 @@ import { fetchMulddae } from "../services/mulddaeService";
 
 const baseUrl = process.env.VUE_APP_BASE_URL;
 
-// Existing actions
-let isFetching = false;
-
 export default createStore({
   state: {
     // Existing state
@@ -16,6 +13,7 @@ export default createStore({
     error: null,
     mulddae: JSON.parse(localStorage.getItem('mulddae')) || null, // 물때 정보 추가
     mulddaeDate: null,
+    isFetching: false,
 
     // Authentication state
     isAuthenticated: !!localStorage.getItem("token"),
@@ -40,6 +38,9 @@ export default createStore({
     },
     setError(state, error) {
       state.error = error;
+    },  
+    setFetching(state, status) {
+      state.isFetching = status;
     },
     setMulddae(state, mulddae) {
       state.mulddae = mulddae; // 물때 정보 업데이트
@@ -118,14 +119,10 @@ export default createStore({
     }
   },
   actions: {
-    async fetchMulddae({ commit }) {
-      if (isFetching) {
-        console.log("info: Already fetching mulddae data, request ignored.");
-        return;
-      }
+    async fetchMulddaeInfo({ commit, state }) {
 
       console.log("vuex : fetchMulddae action triggered.");
-      isFetching = true;
+      state.isFetching = true;
       commit("setLoading", true);
 
       try {
@@ -139,7 +136,7 @@ export default createStore({
         const MAX_AGE = 3600000;
         const isExpired = cachedTimestamp && (now.getTime() - parseInt(cachedTimestamp) > MAX_AGE);
 
-        if (cachedMulddae && cachedDate === today && !isExpired) {
+        if (cachedMulddae !== "null" && cachedDate === today && !isExpired) {
           console.log("success : Loaded mulddae from localStorage.");
           commit("setMulddae", JSON.parse(cachedMulddae));
         } else {
@@ -147,12 +144,17 @@ export default createStore({
             console.log(
               "info : mulddaeDate is not found in localStorage, fetching new data."
             );
-          } else if (cachedDate !== today) {
+          }
+          if (cachedDate !== today) {
             console.log(
               "info : Cached date is different from today, fetching new data."
             );
           }
+          if (!cachedMulddae == "null") {
+            console.log("info : CachedMulddae is corrupted, fetching new data.");
+          }
 
+          // Call API Endpoint
           const mulddaeData = await fetchMulddae(today);
           commit("setMulddae", mulddaeData);
 
@@ -171,7 +173,7 @@ export default createStore({
         console.error("Error fetching mulddae:", error);
         commit("setError", error);
       } finally {
-        isFetching = false;
+        commit("setFetching", false); 
         commit("setLoading", false);
       }
     },
@@ -200,7 +202,7 @@ export default createStore({
     async login({ commit }, { username, password }) {
       try {
         const response = await axios.post("/login", { username, password });
-        const { token, user } = response.data; // Removed 'message'
+        const { token, user } = response.data.data; // Removed 'message'
 
         // 저장소와 로컬 스토리지 업데이트
         localStorage.setItem("token", token);
@@ -229,9 +231,7 @@ export default createStore({
     logout({ commit }) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      localStorage.removeItem('mulddae');
       localStorage.removeItem('catches');
-      localStorage.removeItem('hotIssues');
       commit("clearAuth");
     },
     async fetchUserProfile({ commit }) {
@@ -241,7 +241,8 @@ export default createStore({
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-        commit('setUser', response.data);
+        const profileResponse = response.data.data
+        commit('setUser', profileResponse);
       } catch (error) {
         console.error('Error fetching user profile:', error);
       }
@@ -270,7 +271,7 @@ export default createStore({
               Authorization: `Bearer ${state.token}`,
             },
           });
-          const formattedCatches = response.data.map(item => ({
+          const formattedCatches = response.data.data.map(item => ({
             ...item,
             catch_date: item.catch_date || new Date().toISOString().split('T')[0],
             weight_kg: item.weight_kg || null,
@@ -301,8 +302,7 @@ export default createStore({
           throw new Error('Catch ID is required');
         }
         const token = localStorage.getItem("token");
-        const response = await axios.put(
-          `/catches/${updatedCatch.id}`,
+        const response = await axios.put(`/catches/${updatedCatch.id}`,
           updatedCatch,
           {
             headers: {
@@ -311,8 +311,8 @@ export default createStore({
             }
           }
         );
-        commit("UPDATE_CATCH", response.data);
-        return response.data;
+        commit("UPDATE_CATCH", response.data.data);
+        return response.data.data;
       } catch (error) {
         console.error(
           "Update catch error:",
@@ -346,7 +346,7 @@ export default createStore({
     async fetchServices({ commit }) {
       try {
         const response = await axios.get('/api/services');
-        commit('SET_SERVICES', response.data);
+        commit('SET_SERVICES', response.data.data);
       } catch (error) {
         console.error('Error fetching services:', error);
         // 기본 서비스 목록 사용
@@ -355,13 +355,13 @@ export default createStore({
             id: 1,
             name: "물때 정보",
             icon: "/icons/tide.png",
-            route: "/map-location-service"
+            route: "/spots"
           },
           {
             id: 2,
             name: "날씨 정보",
             icon: "/icons/weather.png",
-            route: "/map-location-service"
+            route: "/spots"
           },
           {
             id: 3,
@@ -385,7 +385,7 @@ export default createStore({
     async fetchInitialData({ dispatch }) {
       try {
         await Promise.all([
-          dispatch('fetchMulddae'),
+          dispatch('fetchMulddaeInfo'),
           dispatch('fetchCatches'),
           dispatch('fetchHotIssues')
         ]);
@@ -395,15 +395,14 @@ export default createStore({
     },
     async checkConsent({ commit }) {
       try {
-        console.log('Checking consent from backend...');
-        const response = await axios.get('/api/consent/check', {
+          const response = await axios.get('/api/consent/check', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-        console.log('Consent response:', response.data);
-        commit('SET_CONSENT', response.data);
-        return response.data;
+        console.log(response.data)
+        commit('SET_CONSENT', response.data.data);
+        return response.data.data;
       } catch (error) {
         console.error('Error checking consent:', error);
         throw error;
